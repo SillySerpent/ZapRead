@@ -22,6 +22,7 @@
             {% if session.get('user') %}
             <a href="{{ url_for('upload_file') }}" class="btn btn-primary">Upload a Document</a>
             {% else %}
+            <a href="{{ url_for('guest_upload') }}" class="btn btn-success me-2">Try it Free</a>
             <a href="{{ url_for('register') }}" class="btn btn-primary me-2">Sign Up</a>
             <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Log In</a>
             {% endif %}
@@ -65,6 +66,24 @@
             <div class="card-body text-center">
                 <h3>Subscription Value</h3>
                 <p>Affordable subscription plans that let you process unlimited documents and enhance your reading.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h3>Try ZapRead for Free</h3>
+                        <p>No registration required for your first document. Try our Bionic Reading technology with one free conversion.</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{{ url_for('guest_upload') }}" class="btn btn-success btn-lg">Try Now</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

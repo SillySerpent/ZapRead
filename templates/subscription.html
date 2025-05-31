@@ -7,32 +7,105 @@
     <div class="col-md-8">
         <div class="card">
             <div class="card-header">
-                <h3 class="text-center">Premium Subscription</h3>
+                <h3 class="text-center">Choose Your Plan</h3>
+                <p class="text-center mb-0">Get unlimited document conversions with our premium plan</p>
             </div>
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-6">
-                        <h4>Free Plan</h4>
-                        <ul class="list-group mb-4">
-                            <li class="list-group-item">Limited document processing</li>
-                            <li class="list-group-item">Basic bionic reading features</li>
-                            <li class="list-group-item">Support for TXT files only</li>
-                            <li class="list-group-item">No document history</li>
-                        </ul>
-                        <div class="d-grid">
-                            <button class="btn btn-outline-secondary" disabled>Current Plan</button>
+                        <div class="card h-100">
+                            <div class="card-header bg-light">
+                                <h4>Free Plan</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="pricing-header text-center mb-4">
+                                    <h3 class="price">$0</h3>
+                                    <p class="text-muted">Forever Free</p>
+                                </div>
+                                <ul class="list-group mb-4">
+                                    <li class="list-group-item">5 document conversions per day</li>
+                                    <li class="list-group-item">Standard bionic reading features</li>
+                                    <li class="list-group-item">Support for all file formats</li>
+                                    <li class="list-group-item">Document history</li>
+                                </ul>
+                                <div class="d-grid">
+                                    <button class="btn btn-outline-secondary" disabled>Current Plan</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <h4>Premium Plan</h4>
-                        <ul class="list-group mb-4">
-                            <li class="list-group-item"><strong>Unlimited</strong> document processing</li>
-                            <li class="list-group-item">Advanced bionic reading features</li>
-                            <li class="list-group-item">Support for TXT, PDF, and DOCX files</li>
-                            <li class="list-group-item">Document history and management</li>
-                        </ul>
-                        <div class="d-grid">
-                            <button id="checkout-button" class="btn btn-primary">Subscribe for $9.99/month</button>
+                        <div class="card h-100 border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h4>Premium Plan</h4>
+                            </div>
+                            <div class="card-body">
+                                <div class="pricing-header text-center mb-4">
+                                    <h3 class="price">$9.99</h3>
+                                    <p class="text-muted">per month</p>
+                                </div>
+                                <ul class="list-group mb-4">
+                                    <li class="list-group-item"><strong>Unlimited</strong> document conversions</li>
+                                    <li class="list-group-item">Advanced bionic reading features</li>
+                                    <li class="list-group-item">Priority processing</li>
+                                    <li class="list-group-item">Premium support</li>
+                                    <li class="list-group-item">Early access to new features</li>
+                                </ul>
+                                <div class="d-grid">
+                                    <button id="checkout-button" class="btn btn-primary">Subscribe Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="text-center">
+                    <p class="mb-0"><strong>Questions?</strong> Contact our support team for assistance with your subscription.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h4>Frequently Asked Questions</h4>
+            </div>
+            <div class="card-body">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingOne">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                Can I cancel my subscription at any time?
+                            </button>
+                        </h2>
+                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, you can cancel your subscription at any time. Your premium features will remain active until the end of your billing period.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingTwo">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                How are payments processed?
+                            </button>
+                        </h2>
+                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Payments are securely processed through Stripe. We do not store your credit card information on our servers.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingThree">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                                What happens if I exceed my free plan limit?
+                            </button>
+                        </h2>
+                        <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                If you exceed your 5 conversions per day limit on the free plan, you will need to wait until the next day or upgrade to our premium plan for unlimited conversions.
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -40,6 +113,16 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .pricing-header .price {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 0;
+    }
+</style>
 {% endblock %}
 
 {% block scripts %}
@@ -66,7 +149,7 @@
                     console.error(session.error);
                     alert('An error occurred, please try again.');
                     checkoutButton.disabled = false;
-                    checkoutButton.textContent = 'Subscribe for $9.99/month';
+                    checkoutButton.textContent = 'Subscribe Now';
                 } else {
                     // Redirect to Stripe Checkout
                     return stripe.redirectToCheckout({ sessionId: session.id });
@@ -78,14 +161,14 @@
                     console.error(result.error.message);
                     alert('An error occurred, please try again.');
                     checkoutButton.disabled = false;
-                    checkoutButton.textContent = 'Subscribe for $9.99/month';
+                    checkoutButton.textContent = 'Subscribe Now';
                 }
             })
             .catch(function(error) {
                 console.error('Error:', error);
                 alert('An error occurred, please try again.');
                 checkoutButton.disabled = false;
-                checkoutButton.textContent = 'Subscribe for $9.99/month';
+                checkoutButton.textContent = 'Subscribe Now';
             });
         });
     });

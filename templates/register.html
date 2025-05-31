@@ -8,9 +8,12 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="text-center">Create an Account</h3>
+                {% if premium_plan %}
+                <p class="text-center text-primary mb-0">You'll be able to subscribe to Premium after registration</p>
+                {% endif %}
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ url_for('register') }}">
+                <form method="POST" action="{{ url_for('register') }}{% if premium_plan %}?plan=premium{% endif %}">
                     <div class="mb-3">
                         <label for="email" class="form-label">Email address</label>
                         <input type="email" class="form-control" id="email" name="email" required>
@@ -30,6 +33,13 @@
                     <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
                 </div>
             </div>
+            {% if premium_plan %}
+            <div class="card-footer bg-primary text-white">
+                <div class="text-center">
+                    <p class="mb-0"><strong>Premium Plan</strong> - Unlimited document conversions for just $9.99/month</p>
+                </div>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

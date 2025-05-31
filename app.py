@@ -1,5 +1,6 @@
 import os
 import uuid
+import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, send_file
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -115,8 +116,39 @@ def register():
             if auth_response.user:
                 user_id = auth_response.user.id
                 print(f"User created successfully with ID: {user_id}")
-                flash('Registration successful! Please check your email to verify your account.', 'success')
-                return redirect(url_for('login'))
+                
+                # If user is coming from guest upload and we have their processed file, 
+                # save it to their account history
+                if 'guest_processed_file' in session:
+                    try:
+                        # Create entry in file history
+                        guest_file = session.get('guest_processed_file', {})
+                        if guest_file.get('original_filename') and guest_file.get('file_type') and guest_file.get('processed_filename'):
+                            User.add_file_to_history(
+                                user_id,
+                                guest_file.get('original_filename'),
+                                guest_file.get('file_type'),
+                                guest_file.get('processed_filename')
+                            )
+                            # Clear the guest file data
+                            session.pop('guest_processed_file', None)
+                    except Exception as e:
+                        print(f"Error saving guest file to user history: {str(e)}")
+                
+                # Check if the user should be directed to subscribe (from URL parameter)
+                plan = request.args.get('plan')
+                if plan == 'premium':
+                    flash('Registration successful! Let\'s set up your premium subscription.', 'success')
+                    
+                    # Auto login the user
+                    session['user'] = {
+                        'id': auth_response.user.id,
+                        'email': auth_response.user.email,
+                    }
+                    return redirect(url_for('subscription'))
+                else:
+                    flash('Registration successful! Please check your email to verify your account.', 'success')
+                    return redirect(url_for('login'))
             else:
                 print("Auth response does not contain user data")
                 flash('Registration failed. Please try again.', 'error')
@@ -129,7 +161,9 @@ def register():
             flash(f'Error during registration: {str(e)}', 'error')
             return render_template('register.html')
     
-    return render_template('register.html')
+    # Check if plan parameter is passed to highlight premium option
+    plan = request.args.get('plan')
+    return render_template('register.html', premium_plan=(plan == 'premium'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -160,6 +194,25 @@ def login():
                 }
                 print(f"Login successful for user: {email}")
                 flash('Login successful!', 'success')
+                
+                # If user has guest processed file waiting, redirect to dashboard
+                if 'guest_processed_file' in session:
+                    try:
+                        # Create entry in file history
+                        guest_file = session.get('guest_processed_file', {})
+                        if guest_file.get('original_filename') and guest_file.get('file_type') and guest_file.get('processed_filename'):
+                            User.add_file_to_history(
+                                auth_response.user.id,
+                                guest_file.get('original_filename'),
+                                guest_file.get('file_type'),
+                                guest_file.get('processed_filename')
+                            )
+                            # Clear the guest file data
+                            session.pop('guest_processed_file', None)
+                            flash('Your guest document has been added to your account!', 'success')
+                    except Exception as e:
+                        print(f"Error saving guest file to user history: {str(e)}")
+                
                 return redirect(url_for('dashboard'))
             else:
                 print(f"Login failed - invalid response: {auth_response}")
@@ -230,7 +283,26 @@ def dashboard():
     # Get user's file history
     file_history = User.get_file_history(user_id)
     
+    # Check subscription status
     has_subscription = User.has_active_subscription(user_id)
+    print(f"User {user_id} has subscription: {has_subscription}")
+    
+    # Get daily upload count for free users
+    daily_uploads = 0
+    can_upload_more = True
+    
+    if not has_subscription:
+        daily_uploads = User.get_daily_upload_count(user_id)
+        can_upload_more = daily_uploads < 5
+    
+    # Get the user's data directly to debug
+    try:
+        supabase = get_supabase()
+        user_data = supabase.table('users').select('*').eq('id', user_id).execute().data
+        if user_data and len(user_data) > 0:
+            print(f"User data: {user_data[0]}")
+    except Exception as e:
+        print(f"Error getting user data: {str(e)}")
     
     return render_template(
         'dashboard.html', 
@@ -239,14 +311,17 @@ def dashboard():
             'email': user_email
         }, 
         file_history=file_history,
-        has_subscription=has_subscription
+        has_subscription=has_subscription,
+        daily_uploads=daily_uploads,
+        can_upload_more=can_upload_more,
+        max_uploads=5
     )
 
 @app.route('/subscription')
 @login_required
 def subscription():
     """Subscription page route."""
-    return render_template('subscription.html')
+    return render_template('subscription.html', config=config)
 
 @app.route('/create-checkout-session', methods=['POST'])
 @login_required
@@ -274,7 +349,25 @@ def create_checkout_session():
 @login_required
 def subscription_success():
     """Subscription success page."""
-    flash('Thank you for subscribing!', 'success')
+    # Get user ID from session
+    user_id = session['user']['id']
+    
+    try:
+        # In test mode, webhooks might not be received properly
+        # So we'll directly update the user's subscription status
+        # This serves as a backup to the webhook handler
+        
+        # Create a placeholder subscription ID if needed for testing
+        test_subscription_id = f"test_sub_{uuid.uuid4()}"
+        
+        # Update the user's subscription status directly
+        User.update_subscription(user_id, test_subscription_id)
+        
+        flash('Thank you for subscribing! You now have unlimited document conversions.', 'success')
+    except Exception as e:
+        print(f"Error updating subscription status: {str(e)}")
+        flash('Your subscription was processed, but there was an issue updating your account. Please contact support.', 'warning')
+    
     return redirect(url_for('dashboard'))
 
 @app.route('/subscription/cancel')
@@ -287,7 +380,7 @@ def subscription_cancel():
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload_file():
-    """File upload route."""
+    """File upload route for registered users."""
     if request.method == 'POST':
         # Check if the post request has the file part
         if 'file' not in request.files:
@@ -302,9 +395,20 @@ def upload_file():
             flash('No selected file', 'error')
             return redirect(request.url)
         
-        # Check subscription status
+        # Get user ID from session
         user_id = session['user']['id']
+        
+        # Check subscription status and daily upload limit
         has_subscription = User.has_active_subscription(user_id)
+        can_upload_more = True
+        
+        if not has_subscription:
+            # Check if user has reached their daily upload limit
+            can_upload_more = User.can_upload_more(user_id)
+            
+            if not can_upload_more:
+                flash('You have reached your daily upload limit (5 documents). Please subscribe for unlimited uploads.', 'error')
+                return redirect(url_for('subscription'))
         
         if file:
             # Generate a unique filename
@@ -364,6 +468,92 @@ def upload_file():
     
     return render_template('upload.html')
 
+@app.route('/guest-upload', methods=['GET', 'POST'])
+def guest_upload():
+    """File upload route for guest users."""
+    # Check if guest already used their free conversion
+    if session.get('guest_used_conversion'):
+        return redirect(url_for('register_prompt'))
+    
+    if request.method == 'POST':
+        # Check if the post request has the file part
+        if 'file' not in request.files:
+            flash('No file part', 'error')
+            return redirect(request.url)
+        
+        file = request.files['file']
+        
+        # If user does not select file, browser also
+        # submits an empty part without filename
+        if file.filename == '':
+            flash('No selected file', 'error')
+            return redirect(request.url)
+        
+        if file:
+            # Generate a unique filename
+            filename = secure_filename(file.filename)
+            unique_filename = f"{uuid.uuid4()}_{filename}"
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+            file.save(file_path)
+            
+            try:
+                # Process the file
+                processed_content, file_type, temp_dir = bionic_processor.process_file(file_path)
+                
+                # Save processed content
+                processed_file_path = bionic_processor.save_processed_file(
+                    processed_content, 
+                    filename, 
+                    file_type,
+                    temp_dir
+                )
+                
+                # Store the guest file info in session for potential future registration
+                session['guest_processed_file'] = {
+                    'original_filename': filename,
+                    'file_type': file_type,
+                    'processed_filename': os.path.basename(processed_file_path)
+                }
+                
+                # Mark that this guest has used their free conversion
+                session['guest_used_conversion'] = True
+                
+                # Clean up the original file
+                os.remove(file_path)
+                
+                # Get file extension to determine how to serve it
+                _, ext = os.path.splitext(processed_file_path)
+                
+                # For HTML files (converted from text), display in browser
+                if ext.lower() == '.html':
+                    # Serve HTML directly in the browser with proper content type
+                    return send_file(
+                        processed_file_path,
+                        mimetype='text/html',
+                        as_attachment=False,  # Display in browser
+                        download_name=os.path.basename(processed_file_path)
+                    )
+                else:
+                    # For other file types (PDF, DOCX), offer as download
+                    return send_file(
+                        processed_file_path,
+                        as_attachment=True,
+                        download_name=os.path.basename(processed_file_path)
+                    )
+            except Exception as e:
+                # Clean up in case of error
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                flash(f'Error processing file: {str(e)}', 'error')
+                return redirect(url_for('guest_upload'))
+    
+    return render_template('guest_upload.html')
+
+@app.route('/register-prompt')
+def register_prompt():
+    """Show prompt for guests to register after using their free conversion."""
+    return render_template('register_prompt.html')
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     """Stripe webhook endpoint."""
@@ -375,11 +565,11 @@ def webhook():
         
         # Handle the event
         if event['type'] == 'checkout.session.completed':
-            session = event['data']['object']
+            session_data = event['data']['object']
             
             # Get the user ID from the client_reference_id
-            user_id = session.get('client_reference_id')
-            subscription_id = session.get('subscription')
+            user_id = session_data.get('client_reference_id')
+            subscription_id = session_data.get('subscription')
             
             if user_id and subscription_id:
                 # Update user's subscription status
@@ -387,11 +577,20 @@ def webhook():
         
         # Handle subscription cancellation
         elif event['type'] == 'customer.subscription.deleted':
-            subscription = event['data']['object']
+            subscription_data = event['data']['object']
+            subscription_id = subscription_data.get('id')
             
             # Find user with this subscription and update their status
-            # This would require a lookup by subscription ID, which might
-            # need additional database querying logic
+            if subscription_id:
+                # In a real implementation, you would look up the user by subscription ID
+                # Here we'll use a placeholder approach
+                supabase = get_supabase()
+                response = supabase.table('users').select('id').eq('subscription_id', subscription_id).execute()
+                users = response.data
+                
+                if users and len(users) > 0:
+                    user_id = users[0]['id']
+                    User.cancel_subscription(user_id)
             
         return jsonify({'status': 'success'})
     except Exception as e:

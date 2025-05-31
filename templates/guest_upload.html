@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Try ZapRead - Free Document Conversion{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Try Bionic Reading - Guest Mode</h3>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-4">
+                    <h5>Welcome to ZapRead!</h5>
+                    <p>You can try our service with one free document conversion. After that, you'll need to create an account to continue using ZapRead.</p>
+                    <p>Registered users get 5 free document conversions per day, and unlimited conversions with a subscription!</p>
+                </div>
+                
+                <form action="{{ url_for('guest_upload') }}" method="post" enctype="multipart/form-data" id="upload-form">
+                    <div class="mb-4">
+                        <div class="drop-zone" id="drop-zone">
+                            <div class="drop-zone-prompt">
+                                <i class="bi bi-cloud-arrow-up fs-1"></i>
+                                <p class="mb-0">Drag and drop files here or click to browse</p>
+                                <p class="text-muted small">Supported formats: TXT, PDF, DOCX</p>
+                            </div>
+                            <input type="file" name="file" id="file-input" class="drop-zone-input" hidden>
+                        </div>
+                    </div>
+                    <div id="file-details" class="mb-3" style="display: none;">
+                        <div class="alert alert-info">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 class="mb-1" id="selected-file-name"></h5>
+                                    <p class="mb-0 text-muted" id="selected-file-size"></p>
+                                </div>
+                                <button type="button" class="btn-close" id="remove-file"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg" id="upload-btn" disabled>
+                            Process Document
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-4 text-center">
+                    <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+                    <p>Want to create an account now? <a href="{{ url_for('register') }}">Sign up</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const fileDetails = document.getElementById('file-details');
+        const selectedFileName = document.getElementById('selected-file-name');
+        const selectedFileSize = document.getElementById('selected-file-size');
+        const removeFileBtn = document.getElementById('remove-file');
+        const uploadBtn = document.getElementById('upload-btn');
+        
+        // Open file browser when clicking on the drop zone
+        dropZone.addEventListener('click', function() {
+            fileInput.click();
+        });
+        
+        // Handle file selection from file browser
+        fileInput.addEventListener('change', function() {
+            handleFiles(this.files);
+        });
+        
+        // Handle drag over
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+        
+        // Handle drag leave
+        ['dragleave', 'dragend'].forEach(type => {
+            dropZone.addEventListener(type, function() {
+                dropZone.classList.remove('drag-over');
+            });
+        });
+        
+        // Handle drop
+        dropZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+        
+        // Remove selected file
+        removeFileBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            fileDetails.style.display = 'none';
+            uploadBtn.disabled = true;
+        });
+        
+        // Handle selected files
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                selectedFileName.textContent = file.name;
+                selectedFileSize.textContent = formatFileSize(file.size);
+                fileDetails.style.display = 'block';
+                uploadBtn.disabled = false;
+            }
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    });
+</script>
+{% endblock %} 
