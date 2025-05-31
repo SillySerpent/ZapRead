@@ -1,0 +1,90 @@
+/**
+ * ZapRead custom styles
+ */
+
+/* File upload styles */
+.drop-zone {
+    border: 2px dashed #0d6efd;
+    border-radius: 5px;
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.drop-zone:hover {
+    background-color: #f8f9fa;
+}
+
+.drop-zone.drag-over {
+    background-color: #e9ecef;
+}
+
+/* Bionic reading example */
+.bionic-text {
+    line-height: 1.6;
+}
+
+.bionic-text strong {
+    font-weight: bold;
+}
+
+/* Subscription plan cards */
+.plan-card {
+    transition: transform 0.3s;
+    border: 1px solid #dee2e6;
+}
+
+.plan-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.plan-card.premium {
+    border-color: #0d6efd;
+}
+
+/* Dashboard styles */
+.stat-card {
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.stat-card h3 {
+    margin-bottom: 10px;
+    color: #495057;
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #0d6efd;
+}
+
+/* Animated subscription button */
+.subscribe-btn {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.subscribe-btn:after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.2);
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.3s ease-out;
+    z-index: -1;
+}
+
+.subscribe-btn:hover:after {
+    transform: scaleX(1);
+    transform-origin: left;
+} 

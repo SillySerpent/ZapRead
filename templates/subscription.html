@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription - ZapRead{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center">Premium Subscription</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h4>Free Plan</h4>
+                        <ul class="list-group mb-4">
+                            <li class="list-group-item">Limited document processing</li>
+                            <li class="list-group-item">Basic bionic reading features</li>
+                            <li class="list-group-item">Support for TXT files only</li>
+                            <li class="list-group-item">No document history</li>
+                        </ul>
+                        <div class="d-grid">
+                            <button class="btn btn-outline-secondary" disabled>Current Plan</button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h4>Premium Plan</h4>
+                        <ul class="list-group mb-4">
+                            <li class="list-group-item"><strong>Unlimited</strong> document processing</li>
+                            <li class="list-group-item">Advanced bionic reading features</li>
+                            <li class="list-group-item">Support for TXT, PDF, and DOCX files</li>
+                            <li class="list-group-item">Document history and management</li>
+                        </ul>
+                        <div class="d-grid">
+                            <button id="checkout-button" class="btn btn-primary">Subscribe for $9.99/month</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let stripe = Stripe('{{ config.STRIPE_PUBLISHABLE_KEY }}');
+        let checkoutButton = document.getElementById('checkout-button');
+        
+        checkoutButton.addEventListener('click', function() {
+            // Disable the button to prevent multiple clicks
+            checkoutButton.disabled = true;
+            checkoutButton.textContent = 'Processing...';
+            
+            // Create a checkout session
+            fetch('/create-checkout-session', {
+                method: 'POST',
+            })
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(session) {
+                if (session.error) {
+                    // Handle error
+                    console.error(session.error);
+                    alert('An error occurred, please try again.');
+                    checkoutButton.disabled = false;
+                    checkoutButton.textContent = 'Subscribe for $9.99/month';
+                } else {
+                    // Redirect to Stripe Checkout
+                    return stripe.redirectToCheckout({ sessionId: session.id });
+                }
+            })
+            .then(function(result) {
+                // If redirectToCheckout fails
+                if (result && result.error) {
+                    console.error(result.error.message);
+                    alert('An error occurred, please try again.');
+                    checkoutButton.disabled = false;
+                    checkoutButton.textContent = 'Subscribe for $9.99/month';
+                }
+            })
+            .catch(function(error) {
+                console.error('Error:', error);
+                alert('An error occurred, please try again.');
+                checkoutButton.disabled = false;
+                checkoutButton.textContent = 'Subscribe for $9.99/month';
+            });
+        });
+    });
+</script>
+{% endblock %} 

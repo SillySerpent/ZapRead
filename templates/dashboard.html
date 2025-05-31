@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ZapRead{% endblock %}
+
+{% block content %}
+<div class="row mt-4">
+    <div class="col-md-12">
+        <h1>Welcome to Your Dashboard</h1>
+        <p class="lead">Manage your documents and subscription here.</p>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>Account Information</h4>
+            </div>
+            <div class="card-body">
+                <p><strong>Email:</strong> {{ user.email }}</p>
+                <p><strong>Subscription Status:</strong> 
+                    {% if has_subscription %}
+                    <span class="badge bg-success">Active</span>
+                    {% else %}
+                    <span class="badge bg-warning">Free</span>
+                    <a href="{{ url_for('subscription') }}" class="btn btn-sm btn-primary ms-2">Upgrade</a>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h4>Recent Documents</h4>
+                <a href="{{ url_for('upload_file') }}" class="btn btn-primary">Upload New Document</a>
+            </div>
+            <div class="card-body">
+                {% if file_history %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Original Filename</th>
+                                <th>File Type</th>
+                                <th>Processed Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for file in file_history %}
+                            <tr>
+                                <td>{{ file.original_filename }}</td>
+                                <td>{{ file.file_type }}</td>
+                                <td>{{ file.created_at }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <p>No documents processed yet. <a href="{{ url_for('upload_file') }}">Upload your first document</a>.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h4>Quick Upload</h4>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select a document to process</label>
+                        <input class="form-control" type="file" id="file" name="file">
+                        <div class="form-text">Supported formats: TXT, PDF, DOCX</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Process Document</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

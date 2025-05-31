@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}ZapRead - Bionic Reading App{% endblock %}
+
+{% block content %}
+<div class="row mt-5">
+    <div class="col-md-6">
+        <h1>Welcome to ZapRead</h1>
+        <p class="lead">Transform your reading experience with Bionic Reading technology.</p>
+        <p>ZapRead makes reading faster and more efficient by highlighting the most important parts of words. 
+           Our brain recognizes words by their shape, and by making parts of words bold, 
+           we create artificial fixation points that guide the eye through the text more quickly.</p>
+        
+        <h2 class="mt-4">How it works</h2>
+        <ol>
+            <li>Upload your document (TXT, PDF, DOCX)</li>
+            <li>Our algorithm applies Bionic Reading formatting</li>
+            <li>Download and enjoy your enhanced reading experience</li>
+        </ol>
+        
+        <div class="mt-4">
+            {% if session.get('user') %}
+            <a href="{{ url_for('upload_file') }}" class="btn btn-primary">Upload a Document</a>
+            {% else %}
+            <a href="{{ url_for('register') }}" class="btn btn-primary me-2">Sign Up</a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Log In</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h3>See the Difference</h3>
+            </div>
+            <div class="card-body">
+                <h5>Normal Text:</h5>
+                <p>Bionic Reading is a new method facilitating the reading process by guiding the eyes through text with artificial fixation points. As a result, the reader is only focusing on the highlighted initial letters and lets the brain center complete the word.</p>
+                
+                <h5 class="mt-3">With Bionic Reading:</h5>
+                <p><strong>Bi</strong>onic <strong>Re</strong>ading <strong>is</strong> a <strong>ne</strong>w <strong>me</strong>thod <strong>fa</strong>cilitating <strong>th</strong>e <strong>re</strong>ading <strong>pro</strong>cess <strong>by</strong> <strong>gu</strong>iding <strong>th</strong>e <strong>ey</strong>es <strong>thr</strong>ough <strong>te</strong>xt <strong>wi</strong>th <strong>ar</strong>tificial <strong>fi</strong>xation <strong>po</strong>ints. <strong>As</strong> a <strong>re</strong>sult, <strong>th</strong>e <strong>re</strong>ader <strong>is</strong> <strong>on</strong>ly <strong>fo</strong>cusing <strong>on</strong> <strong>th</strong>e <strong>hi</strong>ghlighted <strong>in</strong>itial <strong>le</strong>tters <strong>an</strong>d <strong>le</strong>ts <strong>th</strong>e <strong>br</strong>ain <strong>ce</strong>nter <strong>co</strong>mplete <strong>th</strong>e <strong>wo</strong>rd.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h3>Fast Processing</h3>
+                <p>Upload your documents and get them processed instantly with our efficient algorithm.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h3>Multiple Formats</h3>
+                <p>Support for text files, PDFs, and Word documents with automatic format detection.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <h3>Subscription Value</h3>
+                <p>Affordable subscription plans that let you process unlimited documents and enhance your reading.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
