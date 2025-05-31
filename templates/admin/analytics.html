@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - ZapRead Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-0">Website Analytics</h1>
+            <p class="text-muted">Monitor traffic, user activity, and performance metrics</p>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-nav">
+                <div class="d-flex">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-people admin-nav-icon"></i> Users
+                    </a>
+                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-pencil-square admin-nav-icon"></i> Content
+                    </a>
+                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
+                    </a>
+                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link active">
+                        <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Summary -->
+    <div class="row g-4 mb-5">
+        <!-- Total Page Views -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Views</h6>
+                            <h3 class="mb-0">{{ total_views }}</h3>
+                        </div>
+                        <div class="icon-circle bg-light-primary">
+                            <i class="bi bi-eye text-primary"></i>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-calendar3"></i> All time
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unique Visitors -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <h6 class="text-muted mb-1">Unique Visitors</h6>
+                            <h3 class="mb-0">{{ unique_visitors }}</h3>
+                        </div>
+                        <div class="icon-circle bg-light-success">
+                            <i class="bi bi-person-fill text-success"></i>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-calendar3"></i> All time
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Today's Views -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <h6 class="text-muted mb-1">Today's Views</h6>
+                            <h3 class="mb-0">{{ today_views }}</h3>
+                        </div>
+                        <div class="icon-circle bg-light-info">
+                            <i class="bi bi-clock-history text-info"></i>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-calendar3"></i> Today
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registered Users -->
+        <div class="col-md-3 col-sm-6">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div>
+                            <h6 class="text-muted mb-1">Users</h6>
+                            <h3 class="mb-0">{{ user_count }}</h3>
+                        </div>
+                        <div class="icon-circle bg-light-warning">
+                            <i class="bi bi-people-fill text-warning"></i>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-0">
+                        <i class="bi bi-calendar3"></i> All time
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Traffic Chart -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card-premium">
+                <div class="card-header">
+                    <h5 class="mb-0">Traffic Trends</h5>
+                    <p class="text-muted mb-0">Daily page views for the last 30 days</p>
+                </div>
+                <div class="card-body">
+                    <canvas id="trafficChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Pages & User Sources -->
+    <div class="row g-4">
+        <!-- Top Pages -->
+        <div class="col-lg-6">
+            <div class="card-premium h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Pages</h5>
+                    <p class="text-muted mb-0">Most visited pages</p>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Page</th>
+                                    <th>Views</th>
+                                    <th>%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if top_pages %}
+                                    {% for page in top_pages %}
+                                    <tr>
+                                        <td class="text-nowrap">{{ page.path }}</td>
+                                        <td>{{ page.count }}</td>
+                                        <td>{{ page.percentage }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4">No page data available</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Referrers -->
+        <div class="col-lg-6">
+            <div class="card-premium h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Referrers</h5>
+                    <p class="text-muted mb-0">Where your visitors are coming from</p>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Source</th>
+                                    <th>Visits</th>
+                                    <th>%</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if top_referrers %}
+                                    {% for referrer in top_referrers %}
+                                    <tr>
+                                        <td class="text-nowrap">{{ referrer.source }}</td>
+                                        <td>{{ referrer.count }}</td>
+                                        <td>{{ referrer.percentage }}%</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="3" class="text-center py-4">No referrer data available</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        {% if daily_stats %}
+        // Traffic chart
+        const ctx = document.getElementById('trafficChart').getContext('2d');
+        const dates = [
+            {% for stat in daily_stats %}
+                "{{ stat.date }}",
+            {% endfor %}
+        ];
+        
+        const views = [
+            {% for stat in daily_stats %}
+                {{ stat.count }},
+            {% endfor %}
+        ];
+        
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Page Views',
+                    data: views,
+                    fill: false,
+                    borderColor: '#5e41de',
+                    tension: 0.1,
+                    backgroundColor: 'rgba(94, 65, 222, 0.2)',
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    }
+                }
+            }
+        });
+        {% endif %}
+    });
+</script>
+{% endblock %} 

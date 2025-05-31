@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Content Management - ZapRead Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-0">Content Management</h1>
+            <p class="text-muted">Manage website content, testimonials, and features</p>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-nav">
+                <div class="d-flex">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-people admin-nav-icon"></i> Users
+                    </a>
+                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link active me-2">
+                        <i class="bi bi-pencil-square admin-nav-icon"></i> Content
+                    </a>
+                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
+                    </a>
+                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                        <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Sections -->
+    <div class="row g-4">
+        <!-- Testimonials -->
+        <div class="col-md-4">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-chat-quote fs-2 text-primary me-3"></i>
+                        <h4 class="mb-0">Testimonials</h4>
+                    </div>
+                    <p class="text-muted">Manage customer testimonials displayed on the homepage</p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('admin_testimonials') }}" class="btn btn-premium btn-premium-primary">
+                            Manage Testimonials
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Homepage Features -->
+        <div class="col-md-4">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-star fs-2 text-warning me-3"></i>
+                        <h4 class="mb-0">Features</h4>
+                    </div>
+                    <p class="text-muted">Manage feature highlights on the homepage</p>
+                    <div class="mt-4">
+                        <button class="btn btn-premium btn-premium-outline" disabled>
+                            Coming Soon
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ Management -->
+        <div class="col-md-4">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-question-circle fs-2 text-success me-3"></i>
+                        <h4 class="mb-0">FAQ</h4>
+                    </div>
+                    <p class="text-muted">Manage frequently asked questions</p>
+                    <div class="mt-4">
+                        <button class="btn btn-premium btn-premium-outline" disabled>
+                            Coming Soon
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Content -->
+    <div class="row mt-5">
+        <div class="col-12 mb-4">
+            <h3>Current Content Sections</h3>
+        </div>
+
+        {% if content_sections %}
+            {% for section, items in content_sections.items() %}
+                <div class="col-md-6 mb-4">
+                    <div class="card-premium">
+                        <div class="card-header">
+                            <h5 class="mb-0 text-capitalize">{{ section }}</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>Key</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in items %}
+                                            <tr>
+                                                <td class="text-nowrap">{{ item.key }}</td>
+                                                <td>
+                                                    {% if item.content is mapping %}
+                                                        <button class="btn btn-sm btn-outline-secondary" 
+                                                                data-bs-toggle="collapse" 
+                                                                data-bs-target="#content-{{ section }}-{{ item.key }}">
+                                                            View JSON
+                                                        </button>
+                                                        <div class="collapse mt-2" id="content-{{ section }}-{{ item.key }}">
+                                                            <pre class="bg-light p-2 rounded"><code>{{ item.content|tojson(indent=2) }}</code></pre>
+                                                        </div>
+                                                    {% else %}
+                                                        {{ item.content|truncate(50) }}
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-12">
+                <div class="card-premium">
+                    <div class="card-body text-center py-5">
+                        <i class="bi bi-database-dash display-4 text-muted"></i>
+                        <p class="mt-3 text-muted">No content sections found</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

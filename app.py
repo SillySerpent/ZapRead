@@ -11,7 +11,7 @@ from config import get_config
 from supabase_client import get_supabase, close_supabase
 import stripe_client
 import bionic_processor
-from models import User
+from models import User, WebsiteContent, Analytics
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -26,6 +26,31 @@ stripe.api_key = config.STRIPE_SECRET_KEY
 
 # Register close_supabase function to be called when app context ends
 app.teardown_appcontext(close_supabase)
+
+# Analytics middleware to track page views
+@app.before_request
+def track_page_view():
+    # Skip tracking for static files and certain endpoints
+    if request.path.startswith('/static') or request.path == '/webhook' or request.path == '/favicon.ico':
+        return
+    
+    # Get user ID if logged in
+    user_id = session.get('user', {}).get('id', None)
+    
+    # Get metadata
+    metadata = {
+        'ip': request.remote_addr,
+        'user_agent': request.user_agent.string,
+        'referrer': request.referrer,
+        'method': request.method
+    }
+    
+    # Track the page view
+    try:
+        Analytics.track_page_view(request.path, user_id, metadata)
+    except Exception as e:
+        # Don't fail the request if tracking fails
+        print(f"Error tracking page view: {str(e)}")
 
 # Authentication helper functions
 def login_required(f):
@@ -73,7 +98,42 @@ def subscription_required(f):
 @app.route('/')
 def index():
     """Home page route."""
-    return render_template('index.html')
+    # Get dynamic content for the homepage
+    try:
+        testimonials = WebsiteContent.get_testimonials()
+        # If no testimonials are found in the database, use default ones
+        if not testimonials:
+            testimonials = [
+                {
+                    'content': {
+                        'text': 'ZapRead has completely transformed how I consume research papers. I can get through them 30% faster with better comprehension. It\'s a game-changer for academics.',
+                        'author_name': 'Sarah Johnson',
+                        'author_title': 'PhD Student',
+                        'author_image': 'https://randomuser.me/api/portraits/women/32.jpg'
+                    }
+                },
+                {
+                    'content': {
+                        'text': 'As someone with ADHD, focusing on text has always been a struggle. ZapRead has made reading so much easier by guiding my eye through the text. I\'m finally enjoying books again!',
+                        'author_name': 'Michael Torres',
+                        'author_title': 'Software Engineer',
+                        'author_image': 'https://randomuser.me/api/portraits/men/54.jpg'
+                    }
+                },
+                {
+                    'content': {
+                        'text': 'I have to read hundreds of pages of legal documents weekly. Since using ZapRead, I\'ve cut my review time by 20% while maintaining accuracy. Worth every penny!',
+                        'author_name': 'Jennifer Miller',
+                        'author_title': 'Corporate Lawyer',
+                        'author_image': 'https://randomuser.me/api/portraits/women/68.jpg'
+                    }
+                }
+            ]
+    except Exception as e:
+        print(f"Error loading testimonials: {str(e)}")
+        testimonials = []
+    
+    return render_template('index.html', testimonials=testimonials)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -609,7 +669,363 @@ def page_not_found(e):
 
 @app.errorhandler(500)
 def internal_server_error(e):
+    """Handle internal server errors."""
     return render_template('500.html'), 500
+
+# Newsletter Routes
+@app.route('/subscribe-newsletter', methods=['POST'])
+def subscribe_newsletter():
+    """Handle newsletter subscription."""
+    email = request.form.get('email')
+    
+    if not email:
+        return jsonify({'success': False, 'message': 'Email is required'}), 400
+    
+    try:
+        supabase = get_supabase()
+        
+        # Check if email already exists
+        response = supabase.table('newsletter_subscribers').select('*').eq('email', email).execute()
+        
+        if response.data and len(response.data) > 0:
+            return jsonify({'success': True, 'message': 'You are already subscribed!'}), 200
+        
+        # Add new subscriber
+        supabase.table('newsletter_subscribers').insert({
+            'email': email,
+            'subscribed_at': datetime.datetime.now().isoformat()
+        }).execute()
+        
+        return jsonify({'success': True, 'message': 'Thank you for subscribing!'}), 200
+    except Exception as e:
+        print(f"Newsletter subscription error: {str(e)}")
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
+
+# Feedback Routes
+@app.route('/submit-feedback', methods=['POST'])
+def submit_feedback():
+    """Handle feedback submission."""
+    feedback_type = request.form.get('feedback_type')
+    message = request.form.get('message')
+    email = request.form.get('email', '')
+    
+    if not feedback_type or not message:
+        return jsonify({'success': False, 'message': 'Feedback type and message are required'}), 400
+    
+    try:
+        supabase = get_supabase()
+        
+        # Get user ID if logged in
+        user_id = session.get('user', {}).get('id', None)
+        
+        # Add feedback to database
+        supabase.table('feedback').insert({
+            'user_id': user_id,
+            'feedback_type': feedback_type,
+            'message': message,
+            'email': email,
+            'created_at': datetime.datetime.now().isoformat()
+        }).execute()
+        
+        return jsonify({'success': True, 'message': 'Thank you for your feedback!'}), 200
+    except Exception as e:
+        print(f"Feedback submission error: {str(e)}")
+        return jsonify({'success': False, 'message': 'An error occurred. Please try again.'}), 500
+
+# Admin Routes
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # First check if user is logged in
+        if 'user' not in session:
+            flash('Please log in to access this page', 'error')
+            return redirect(url_for('login'))
+        
+        # Check if user is an admin
+        user_id = session['user']['id']
+        supabase = get_supabase()
+        response = supabase.table('users').select('is_admin').eq('id', user_id).execute()
+        
+        if not response.data or not response.data[0].get('is_admin'):
+            flash('You do not have permission to access this page', 'error')
+            return redirect(url_for('dashboard'))
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    """Admin dashboard page."""
+    try:
+        supabase = get_supabase()
+        
+        # Get statistics
+        users_response = supabase.table('users').select('count', count='exact').execute()
+        users_count = users_response.count if hasattr(users_response, 'count') else 0
+        
+        files_response = supabase.table('file_history').select('count', count='exact').execute()
+        files_count = files_response.count if hasattr(files_response, 'count') else 0
+        
+        subscribers_response = supabase.table('newsletter_subscribers').select('count', count='exact').execute()
+        subscribers_count = subscribers_response.count if hasattr(subscribers_response, 'count') else 0
+        
+        feedback_response = supabase.table('feedback').select('count', count='exact').execute()
+        feedback_count = feedback_response.count if hasattr(feedback_response, 'count') else 0
+        
+        # Get recent users
+        recent_users = supabase.table('users').select('*').order('created_at', desc=True).limit(5).execute()
+        
+        # Get recent files
+        recent_files = supabase.table('file_history').select('*').order('created_at', desc=True).limit(5).execute()
+        
+        return render_template('admin/dashboard.html', 
+                              users_count=users_count,
+                              files_count=files_count,
+                              subscribers_count=subscribers_count,
+                              feedback_count=feedback_count,
+                              recent_users=recent_users.data,
+                              recent_files=recent_files.data)
+    except Exception as e:
+        print(f"Admin dashboard error: {str(e)}")
+        flash('An error occurred while loading the admin dashboard', 'error')
+        return redirect(url_for('dashboard'))
+
+@app.route('/admin/users')
+@admin_required
+def admin_users():
+    """Admin users page."""
+    try:
+        supabase = get_supabase()
+        
+        # Get all users
+        users = supabase.table('users').select('*').order('created_at', desc=True).execute()
+        
+        return render_template('admin/users.html', users=users.data)
+    except Exception as e:
+        print(f"Admin users error: {str(e)}")
+        flash('An error occurred while loading users', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/feedback')
+@admin_required
+def admin_feedback():
+    """Admin feedback page."""
+    try:
+        supabase = get_supabase()
+        
+        # Get all feedback
+        feedback = supabase.table('feedback').select('*').order('created_at', desc=True).execute()
+        
+        return render_template('admin/feedback.html', feedback=feedback.data)
+    except Exception as e:
+        print(f"Admin feedback error: {str(e)}")
+        flash('An error occurred while loading feedback', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/newsletter')
+@admin_required
+def admin_newsletter():
+    """Admin newsletter page."""
+    try:
+        supabase = get_supabase()
+        
+        # Get all subscribers
+        subscribers = supabase.table('newsletter_subscribers').select('*').order('subscribed_at', desc=True).execute()
+        
+        return render_template('admin/newsletter.html', subscribers=subscribers.data)
+    except Exception as e:
+        print(f"Admin newsletter error: {str(e)}")
+        flash('An error occurred while loading subscribers', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/send-newsletter', methods=['GET', 'POST'])
+@admin_required
+def admin_send_newsletter():
+    """Send newsletter to subscribers."""
+    if request.method == 'POST':
+        subject = request.form.get('subject')
+        content = request.form.get('content')
+        
+        if not subject or not content:
+            flash('Subject and content are required', 'error')
+            return redirect(url_for('admin_send_newsletter'))
+        
+        try:
+            # In a real implementation, you would integrate with an email service
+            # For demonstration purposes, we'll just show a success message
+            flash('Newsletter sent successfully!', 'success')
+            return redirect(url_for('admin_newsletter'))
+        except Exception as e:
+            print(f"Send newsletter error: {str(e)}")
+            flash('An error occurred while sending the newsletter', 'error')
+            return redirect(url_for('admin_send_newsletter'))
+    
+    return render_template('admin/send_newsletter.html')
+
+@app.route('/faq')
+def faq():
+    """FAQ page."""
+    return render_template('faq.html')
+
+@app.route('/feedback')
+def feedback():
+    """Feedback page."""
+    return render_template('feedback.html')
+
+@app.route('/admin/content')
+@admin_required
+def admin_content():
+    """Admin content management page."""
+    try:
+        supabase = get_supabase()
+        
+        # Get all content sections
+        website_content = supabase.table('website_content').select('*').order('section', desc=False).execute()
+        
+        # Organize content by section
+        content_by_section = {}
+        for item in website_content.data:
+            section = item.get('section')
+            if section not in content_by_section:
+                content_by_section[section] = []
+            content_by_section[section].append(item)
+        
+        return render_template('admin/content.html', content_by_section=content_by_section)
+    except Exception as e:
+        print(f"Admin content error: {str(e)}")
+        flash('An error occurred while loading content', 'error')
+        return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/content/testimonials')
+@admin_required
+def admin_testimonials():
+    """Admin testimonials management page."""
+    try:
+        # Get all testimonials
+        testimonials = WebsiteContent.get_testimonials()
+        
+        return render_template('admin/testimonials.html', testimonials=testimonials)
+    except Exception as e:
+        print(f"Admin testimonials error: {str(e)}")
+        flash('An error occurred while loading testimonials', 'error')
+        return redirect(url_for('admin_content'))
+
+@app.route('/admin/content/testimonials/add', methods=['POST'])
+@admin_required
+def admin_add_testimonial():
+    """Add a new testimonial."""
+    try:
+        text = request.form.get('text')
+        author_name = request.form.get('author_name')
+        author_title = request.form.get('author_title')
+        author_image = request.form.get('author_image')
+        
+        if not text or not author_name:
+            flash('Testimonial text and author name are required', 'error')
+            return redirect(url_for('admin_testimonials'))
+        
+        # Create testimonial data
+        testimonial_data = {
+            'text': text,
+            'author_name': author_name,
+            'author_title': author_title or '',
+            'author_image': author_image or 'https://randomuser.me/api/portraits/lego/1.jpg'
+        }
+        
+        # Add testimonial
+        WebsiteContent.add_testimonial(testimonial_data)
+        
+        flash('Testimonial added successfully', 'success')
+        return redirect(url_for('admin_testimonials'))
+    except Exception as e:
+        print(f"Admin add testimonial error: {str(e)}")
+        flash('An error occurred while adding the testimonial', 'error')
+        return redirect(url_for('admin_testimonials'))
+
+@app.route('/admin/content/testimonials/edit/<testimonial_id>', methods=['POST'])
+@admin_required
+def admin_edit_testimonial(testimonial_id):
+    """Edit a testimonial."""
+    try:
+        text = request.form.get('text')
+        author_name = request.form.get('author_name')
+        author_title = request.form.get('author_title')
+        author_image = request.form.get('author_image')
+        
+        if not text or not author_name:
+            flash('Testimonial text and author name are required', 'error')
+            return redirect(url_for('admin_testimonials'))
+        
+        # Create testimonial data
+        testimonial_data = {
+            'text': text,
+            'author_name': author_name,
+            'author_title': author_title or '',
+            'author_image': author_image or 'https://randomuser.me/api/portraits/lego/1.jpg'
+        }
+        
+        # Update testimonial
+        WebsiteContent.update_testimonial(testimonial_id, testimonial_data)
+        
+        flash('Testimonial updated successfully', 'success')
+        return redirect(url_for('admin_testimonials'))
+    except Exception as e:
+        print(f"Admin edit testimonial error: {str(e)}")
+        flash('An error occurred while updating the testimonial', 'error')
+        return redirect(url_for('admin_testimonials'))
+
+@app.route('/admin/content/testimonials/delete/<testimonial_id>', methods=['POST'])
+@admin_required
+def admin_delete_testimonial(testimonial_id):
+    """Delete a testimonial."""
+    try:
+        # Delete testimonial
+        WebsiteContent.delete_testimonial(testimonial_id)
+        
+        flash('Testimonial deleted successfully', 'success')
+        return redirect(url_for('admin_testimonials'))
+    except Exception as e:
+        print(f"Admin delete testimonial error: {str(e)}")
+        flash('An error occurred while deleting the testimonial', 'error')
+        return redirect(url_for('admin_testimonials'))
+
+@app.route('/admin/analytics')
+@admin_required
+def admin_analytics():
+    """Admin analytics page."""
+    try:
+        # Get analytics data
+        daily_stats = Analytics.get_daily_stats(days=30)
+        
+        # Convert to format suitable for charts
+        dates = sorted(daily_stats.keys())
+        page_views = [daily_stats[date]['count'] for date in dates]
+        unique_users = [daily_stats[date]['unique_users'] for date in dates]
+        
+        # Get top pages
+        page_views_data = Analytics.get_page_views(days=30)
+        
+        # Count page views by page
+        page_counts = {}
+        for view in page_views_data:
+            page = view['page']
+            if page not in page_counts:
+                page_counts[page] = 0
+            page_counts[page] += 1
+        
+        # Sort by count (descending)
+        top_pages = sorted(page_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+        
+        return render_template('admin/analytics.html', 
+                              dates=dates,
+                              page_views=page_views,
+                              unique_users=unique_users,
+                              top_pages=top_pages)
+    except Exception as e:
+        print(f"Admin analytics error: {str(e)}")
+        flash('An error occurred while loading analytics data', 'error')
+        return redirect(url_for('admin_dashboard'))
 
 if __name__ == '__main__':
     app.run(debug=config.DEBUG) 

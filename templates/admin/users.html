@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - ZapRead Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-0">Manage Users</h1>
+            <p class="text-muted">View and manage all registered users</p>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-nav">
+                <div class="d-flex">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link active me-2">
+                        <i class="bi bi-people admin-nav-icon"></i> Users
+                    </a>
+                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-pencil-square admin-nav-icon"></i> Content
+                    </a>
+                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
+                    </a>
+                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                        <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Filters and Search -->
+    <div class="card-premium mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="user-search" placeholder="Search by email or name">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="subscription-filter">
+                        <option value="all">All Subscriptions</option>
+                        <option value="premium">Premium Users</option>
+                        <option value="free">Free Users</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="sort-users">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="email">Email (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card-premium">
+        <div class="card-body">
+            {% if users %}
+            <div class="table-responsive">
+                <table class="table-premium" id="users-table">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Joined</th>
+                            <th>Subscription</th>
+                            <th>Documents</th>
+                            <th>Last Login</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar me-2 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-size: 14px;">
+                                        {{ user.email|default('?', true)|first|upper }}
+                                    </div>
+                                    {{ user.email }}
+                                </div>
+                            </td>
+                            <td>{{ user.created_at|default('-', true) }}</td>
+                            <td>
+                                {% if user.subscription_status == 'active' %}
+                                <span class="badge bg-success">Premium</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Free</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.documents_count|default('0', true) }}</td>
+                            <td>{{ user.last_login|default('-', true) }}</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ loop.index }}">
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i> View Details</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i> Edit User</a></li>
+                                        {% if user.subscription_status == 'active' %}
+                                        <li><a class="dropdown-item text-warning" href="#"><i class="bi bi-pause-circle me-2"></i> Suspend Subscription</a></li>
+                                        {% else %}
+                                        <li><a class="dropdown-item text-success" href="#"><i class="bi bi-star me-2"></i> Assign Premium</a></li>
+                                        {% endif %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i> Delete User</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-people display-4 text-muted"></i>
+                <p class="mt-3 text-muted">No users found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // User search functionality
+        const userSearch = document.getElementById('user-search');
+        const subscriptionFilter = document.getElementById('subscription-filter');
+        const sortUsers = document.getElementById('sort-users');
+        const usersTable = document.getElementById('users-table');
+        
+        if (userSearch && usersTable) {
+            userSearch.addEventListener('input', filterUsers);
+        }
+        
+        if (subscriptionFilter) {
+            subscriptionFilter.addEventListener('change', filterUsers);
+        }
+        
+        if (sortUsers) {
+            sortUsers.addEventListener('change', filterUsers);
+        }
+        
+        function filterUsers() {
+            const searchTerm = userSearch.value.toLowerCase();
+            const subscriptionType = subscriptionFilter.value;
+            const rows = usersTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const email = row.cells[0].textContent.toLowerCase();
+                const subscription = row.cells[2].textContent.toLowerCase();
+                
+                let showRow = email.includes(searchTerm);
+                
+                if (subscriptionType !== 'all') {
+                    showRow = showRow && (
+                        (subscriptionType === 'premium' && subscription.includes('premium')) ||
+                        (subscriptionType === 'free' && subscription.includes('free'))
+                    );
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+    });
+</script>
+{% endblock %} 

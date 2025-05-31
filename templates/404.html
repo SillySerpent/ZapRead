@@ -3,12 +3,87 @@
 {% block title %}Page Not Found - ZapRead{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-8 text-center">
-        <h1 class="display-1">404</h1>
-        <h2>Page Not Found</h2>
-        <p class="lead">The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
-        <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Go Home</a>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 text-center">
+            <div class="error-page">
+                <h1 class="display-1 fw-bold text-primary">404</h1>
+                <div class="error-divider"></div>
+                <h2 class="mb-4">Oops! Page Not Found</h2>
+                <p class="lead mb-5">The page you're looking for doesn't exist or has been moved.</p>
+                
+                <div class="error-actions">
+                    <a href="{{ url_for('index') }}" class="btn btn-premium btn-premium-primary me-3">
+                        <i class="bi bi-house-door"></i> Back to Home
+                    </a>
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-grid"></i> Go to Dashboard
+                    </a>
+                </div>
+                
+                <div class="mt-5">
+                    <h4 class="mb-3">Here are some helpful links:</h4>
+                    <div class="row justify-content-center">
+                        <div class="col-md-4">
+                            <a href="{{ url_for('index') }}" class="text-decoration-none">
+                                <div class="card-premium p-3 mb-3 text-center">
+                                    <i class="bi bi-house-door fs-2 mb-2"></i>
+                                    <h5>Home</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{ url_for('upload') }}" class="text-decoration-none">
+                                <div class="card-premium p-3 mb-3 text-center">
+                                    <i class="bi bi-upload fs-2 mb-2"></i>
+                                    <h5>Upload Document</h5>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4">
+                            <a href="{{ url_for('faq') }}" class="text-decoration-none">
+                                <div class="card-premium p-3 mb-3 text-center">
+                                    <i class="bi bi-question-circle fs-2 mb-2"></i>
+                                    <h5>FAQ</h5>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    .error-page {
+        padding: 40px 0;
+    }
+    
+    .error-divider {
+        width: 100px;
+        height: 4px;
+        background: var(--bs-primary);
+        margin: 20px auto 30px;
+        border-radius: 2px;
+    }
+    
+    .error-actions {
+        margin-bottom: 40px;
+    }
+    
+    @media (max-width: 767.98px) {
+        .error-actions .btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .error-actions .btn:last-child {
+            margin-right: 0 !important;
+        }
+    }
+</style>
 {% endblock %} 

@@ -1,0 +1,374 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback - ZapRead{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-5 fw-bold mb-3">We Value Your Feedback</h1>
+            <p class="lead">Your thoughts help us improve ZapRead. Share your experience, suggestions, or report issues.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card-premium">
+                <div class="card-header">
+                    <h4 class="mb-0">Send Feedback</h4>
+                </div>
+                <div class="card-body">
+                    {% if success %}
+                    <div class="alert alert-success" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Thank you for your feedback! We've received your message and will review it shortly.
+                    </div>
+                    {% endif %}
+
+                    {% if error %}
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <form id="feedback-form" action="{{ url_for('submit_feedback') }}" method="post">
+                        <div class="mb-4">
+                            <label class="form-label">Feedback Type <span class="text-danger">*</span></label>
+                            <div class="row g-3">
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check feedback-type-card">
+                                        <input class="form-check-input" type="radio" name="feedback_type" id="type-suggestion" value="suggestion" checked>
+                                        <label class="form-check-label" for="type-suggestion">
+                                            <i class="bi bi-lightbulb feedback-icon"></i>
+                                            <span>Suggestion</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check feedback-type-card">
+                                        <input class="form-check-input" type="radio" name="feedback_type" id="type-bug" value="bug">
+                                        <label class="form-check-label" for="type-bug">
+                                            <i class="bi bi-bug feedback-icon"></i>
+                                            <span>Bug Report</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check feedback-type-card">
+                                        <input class="form-check-input" type="radio" name="feedback_type" id="type-question" value="question">
+                                        <label class="form-check-label" for="type-question">
+                                            <i class="bi bi-question-circle feedback-icon"></i>
+                                            <span>Question</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-3">
+                                    <div class="form-check feedback-type-card">
+                                        <input class="form-check-input" type="radio" name="feedback_type" id="type-other" value="other">
+                                        <label class="form-check-label" for="type-other">
+                                            <i class="bi bi-chat-dots feedback-icon"></i>
+                                            <span>Other</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if not current_user.is_authenticated %}
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address (optional)</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="your@email.com">
+                            <div class="form-text">Provide your email if you'd like us to follow up with you.</div>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="subject" name="subject" required>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="message" class="form-label">Your Message <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="message" name="message" rows="6" required></textarea>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="newsletter" name="subscribe_newsletter">
+                            <label class="form-check-label" for="newsletter">
+                                Keep me updated with news and improvements to ZapRead
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-premium btn-premium-primary">
+                                <i class="bi bi-send"></i> Submit Feedback
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4 mt-4 mt-lg-0">
+            <!-- Quick Links -->
+            <div class="card-premium mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Quick Links</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('faq') }}" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-question-circle me-3 fs-5"></i>
+                        <div>
+                            <strong>Frequently Asked Questions</strong>
+                            <div class="small text-muted">Find answers to common questions</div>
+                        </div>
+                    </a>
+                    <a href="mailto:support@zapread.com" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-envelope me-3 fs-5"></i>
+                        <div>
+                            <strong>Email Support</strong>
+                            <div class="small text-muted">Direct contact via email</div>
+                        </div>
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center">
+                        <i class="bi bi-file-earmark-text me-3 fs-5"></i>
+                        <div>
+                            <strong>Documentation</strong>
+                            <div class="small text-muted">Guides and tutorials</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Contact Info -->
+            <div class="card-premium">
+                <div class="card-header">
+                    <h5 class="mb-0">Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="contact-item d-flex mb-3">
+                        <i class="bi bi-envelope-fill contact-icon me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Email</h6>
+                            <a href="mailto:support@zapread.com">support@zapread.com</a>
+                        </div>
+                    </div>
+                    <div class="contact-item d-flex mb-3">
+                        <i class="bi bi-clock-fill contact-icon me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Support Hours</h6>
+                            <p class="mb-0">Monday-Friday: 9AM-5PM EST</p>
+                        </div>
+                    </div>
+                    <div class="contact-item d-flex">
+                        <i class="bi bi-hourglass-split contact-icon me-3"></i>
+                        <div>
+                            <h6 class="mb-1">Response Time</h6>
+                            <p class="mb-0">Typically within 24 hours<br>
+                            <span class="small text-muted">(Premium users receive priority support)</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Testimonials and Success Stories -->
+    <div class="row mt-5">
+        <div class="col-12 text-center mb-4">
+            <h2>What Our Users Say</h2>
+            <p class="lead">Join thousands of satisfied ZapRead users who have improved their reading experience</p>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="testimonial-rating mb-3">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-text">"ZapRead has completely transformed how I read academic papers. I'm able to process information much faster, and my comprehension has improved significantly. Highly recommend for students!"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-name">Sarah K.</div>
+                        <div class="testimonial-title">Graduate Student</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="testimonial-rating mb-3">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-text">"As someone with dyslexia, reading large documents has always been challenging. The Bionic Reading format provided by ZapRead makes it so much easier to stay focused and absorb information."</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-name">Michael R.</div>
+                        <div class="testimonial-title">Software Developer</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card-premium h-100">
+                <div class="card-body">
+                    <div class="testimonial-rating mb-3">
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-fill"></i>
+                        <i class="bi bi-star-half"></i>
+                    </div>
+                    <p class="testimonial-text">"I process dozens of reports each week for my job. Since using ZapRead, I've reduced my reading time by nearly 30%. The customer service is excellent too - they responded to my question within hours!"</p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-name">Jennifer L.</div>
+                        <div class="testimonial-title">Financial Analyst</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+    /* Feedback type cards */
+    .feedback-type-card {
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        text-align: center;
+        height: 100%;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .feedback-type-card:hover {
+        border-color: var(--bs-primary);
+    }
+    
+    .feedback-type-card .form-check-input {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+    
+    .feedback-icon {
+        font-size: 2rem;
+        display: block;
+        margin: 0 auto 0.5rem;
+        color: var(--bs-primary);
+    }
+    
+    .feedback-type-card label {
+        display: block;
+        width: 100%;
+        cursor: pointer;
+    }
+    
+    /* Contact info */
+    .contact-icon {
+        font-size: 1.5rem;
+        color: var(--bs-primary);
+    }
+    
+    /* Testimonials */
+    .testimonial-rating {
+        color: #ffc107;
+    }
+    
+    .testimonial-text {
+        font-style: italic;
+        margin-bottom: 1.5rem;
+    }
+    
+    .testimonial-author {
+        margin-top: auto;
+    }
+    
+    .testimonial-name {
+        font-weight: bold;
+    }
+    
+    .testimonial-title {
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    
+    /* Form validation styles */
+    .was-validated .form-control:invalid,
+    .form-control.is-invalid {
+        border-color: var(--bs-danger);
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Highlight the selected feedback type card
+        const feedbackCards = document.querySelectorAll('.feedback-type-card');
+        const radioInputs = document.querySelectorAll('input[name="feedback_type"]');
+        
+        function updateSelectedCard() {
+            feedbackCards.forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            for (let i = 0; i < radioInputs.length; i++) {
+                if (radioInputs[i].checked) {
+                    radioInputs[i].closest('.feedback-type-card').classList.add('selected');
+                    break;
+                }
+            }
+        }
+        
+        radioInputs.forEach(input => {
+            input.addEventListener('change', updateSelectedCard);
+        });
+        
+        feedbackCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                
+                // Trigger the change event
+                const event = new Event('change');
+                radio.dispatchEvent(event);
+            });
+        });
+        
+        // Form validation
+        const form = document.getElementById('feedback-form');
+        
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                
+                form.classList.add('was-validated');
+            });
+        }
+        
+        // Initialize
+        updateSelectedCard();
+    });
+</script>
+{% endblock %} 

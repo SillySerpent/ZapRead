@@ -1,0 +1,386 @@
+{% extends "base.html" %}
+
+{% block title %}Newsletter Management - ZapRead Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-0">Newsletter Management</h1>
+            <p class="text-muted">Manage subscribers and send newsletters</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin_send_newsletter') }}" class="btn btn-premium btn-premium-primary">
+                <i class="bi bi-envelope"></i> Send Newsletter
+            </a>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-nav">
+                <div class="d-flex">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-people admin-nav-icon"></i> Users
+                    </a>
+                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-pencil-square admin-nav-icon"></i> Content
+                    </a>
+                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
+                    </a>
+                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link active me-2">
+                        <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                        <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Newsletter Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="admin-stat">{{ subscribers|length }}</div>
+                <div class="admin-label">Total Subscribers</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="admin-stat">{{ subscribers|selectattr('status', 'equalto', 'active')|list|length }}</div>
+                <div class="admin-label">Active Subscribers</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="admin-stat">0</div>
+                <div class="admin-label">Campaigns Sent</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card">
+                <div class="admin-stat">0%</div>
+                <div class="admin-label">Avg. Open Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subscriber Management -->
+    <div class="card-premium mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Subscriber Management</h5>
+            <button class="btn btn-sm btn-premium btn-premium-outline" data-bs-toggle="modal" data-bs-target="#addSubscriberModal">
+                <i class="bi bi-plus"></i> Add Subscriber
+            </button>
+        </div>
+        <div class="card-body">
+            <!-- Search and Filter -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="subscriber-search" placeholder="Search subscribers">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="status-filter">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="unsubscribed">Unsubscribed</option>
+                        <option value="bounced">Bounced</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="sort-subscribers">
+                        <option value="newest">Newest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="email">Email (A-Z)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Subscribers Table -->
+            {% if subscribers %}
+            <div class="table-responsive">
+                <table class="table-premium" id="subscribers-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-column">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="select-all-subscribers">
+                                </div>
+                            </th>
+                            <th>Email</th>
+                            <th>Subscribed Date</th>
+                            <th>Status</th>
+                            <th>Source</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subscriber in subscribers %}
+                        <tr>
+                            <td class="checkbox-column">
+                                <div class="form-check">
+                                    <input class="form-check-input subscriber-checkbox" type="checkbox" value="{{ subscriber.id }}">
+                                </div>
+                            </td>
+                            <td>{{ subscriber.email }}</td>
+                            <td>{{ subscriber.subscribed_at|default('-', true) }}</td>
+                            <td>
+                                <span class="badge {% if subscriber.status == 'active' %}bg-success{% elif subscriber.status == 'unsubscribed' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                    {{ subscriber.status|default('Active', true)|title }}
+                                </span>
+                            </td>
+                            <td>{{ subscriber.source|default('Website', true) }}</td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Actions
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-envelope me-2"></i> Send Email</a></li>
+                                        {% if subscriber.status == 'active' %}
+                                        <li><a class="dropdown-item text-warning" href="#"><i class="bi bi-pause-circle me-2"></i> Unsubscribe</a></li>
+                                        {% else %}
+                                        <li><a class="dropdown-item text-success" href="#"><i class="bi bi-play-circle me-2"></i> Reactivate</a></li>
+                                        {% endif %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i> Delete</a></li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Bulk Actions -->
+            <div class="mt-3 d-flex justify-content-between">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="bulkActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Bulk Actions
+                    </button>
+                    <ul class="dropdown-menu" aria-labelledby="bulkActionsDropdown">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-envelope me-2"></i> Send Email</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-tag me-2"></i> Add Tag</a></li>
+                        <li><a class="dropdown-item text-warning" href="#"><i class="bi bi-pause-circle me-2"></i> Unsubscribe Selected</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i> Delete Selected</a></li>
+                    </ul>
+                </div>
+
+                <!-- Pagination -->
+                <nav>
+                    <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-envelope display-4 text-muted"></i>
+                <p class="mt-3 text-muted">No subscribers yet</p>
+                <button class="btn btn-premium btn-premium-primary mt-2" data-bs-toggle="modal" data-bs-target="#addSubscriberModal">
+                    <i class="bi bi-plus"></i> Add Your First Subscriber
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Campaigns -->
+    <div class="card-premium">
+        <div class="card-header">
+            <h5 class="mb-0">Recent Campaigns</h5>
+        </div>
+        <div class="card-body">
+            <div class="text-center py-4">
+                <i class="bi bi-envelope-paper display-4 text-muted"></i>
+                <p class="mt-3 text-muted">No campaigns sent yet</p>
+                <a href="{{ url_for('admin_send_newsletter') }}" class="btn btn-premium btn-premium-primary mt-2">
+                    <i class="bi bi-send"></i> Create Your First Campaign
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Subscriber Modal -->
+<div class="modal fade" id="addSubscriberModal" tabindex="-1" aria-labelledby="addSubscriberModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSubscriberModalLabel">Add Subscriber</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="add-subscriber-form">
+                    <div class="mb-3">
+                        <label for="subscriber-email" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="subscriber-email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="subscriber-source" class="form-label">Source</label>
+                        <select class="form-select" id="subscriber-source">
+                            <option value="manual">Manual Entry</option>
+                            <option value="website">Website</option>
+                            <option value="import">Import</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="send-welcome-email" checked>
+                        <label class="form-check-label" for="send-welcome-email">
+                            Send welcome email
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="add-subscriber-btn">Add Subscriber</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Import Subscribers Modal -->
+<div class="modal fade" id="importSubscribersModal" tabindex="-1" aria-labelledby="importSubscribersModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importSubscribersModalLabel">Import Subscribers</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="import-subscribers-form">
+                    <div class="mb-3">
+                        <label for="csv-file" class="form-label">CSV File</label>
+                        <input type="file" class="form-control" id="csv-file" accept=".csv" required>
+                        <div class="form-text">CSV file should have headers and include at least an 'email' column.</div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="has-headers" checked>
+                        <label class="form-check-label" for="has-headers">
+                            File has headers
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="import-subscribers-btn">Import</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select all checkbox
+        const selectAllCheckbox = document.getElementById('select-all-subscribers');
+        const subscriberCheckboxes = document.querySelectorAll('.subscriber-checkbox');
+        
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                subscriberCheckboxes.forEach(checkbox => {
+                    checkbox.checked = this.checked;
+                });
+            });
+        }
+        
+        // Subscriber search
+        const subscriberSearch = document.getElementById('subscriber-search');
+        const statusFilter = document.getElementById('status-filter');
+        const subscribersTable = document.getElementById('subscribers-table');
+        
+        if (subscriberSearch && subscribersTable) {
+            subscriberSearch.addEventListener('input', filterSubscribers);
+        }
+        
+        if (statusFilter) {
+            statusFilter.addEventListener('change', filterSubscribers);
+        }
+        
+        function filterSubscribers() {
+            const searchTerm = subscriberSearch.value.toLowerCase();
+            const status = statusFilter.value;
+            const rows = subscribersTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const email = row.cells[1].textContent.toLowerCase();
+                const subscriberStatus = row.cells[3].textContent.trim().toLowerCase();
+                
+                let showRow = email.includes(searchTerm);
+                
+                if (status !== 'all') {
+                    showRow = showRow && subscriberStatus.includes(status);
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+            });
+        }
+        
+        // Add subscriber form
+        const addSubscriberBtn = document.getElementById('add-subscriber-btn');
+        const addSubscriberForm = document.getElementById('add-subscriber-form');
+        
+        if (addSubscriberBtn) {
+            addSubscriberBtn.addEventListener('click', function() {
+                const emailInput = document.getElementById('subscriber-email');
+                
+                if (emailInput.value.trim() === '') {
+                    emailInput.classList.add('is-invalid');
+                    return;
+                }
+                
+                // Simulate adding the subscriber
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Adding...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('addSubscriberModal'));
+                    modal.hide();
+                    
+                    // Show success message
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'alert alert-success alert-dismissible fade show';
+                    successMessage.innerHTML = `
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Subscriber added successfully!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    
+                    document.querySelector('.container').prepend(successMessage);
+                    
+                    // Reset the form and button
+                    addSubscriberForm.reset();
+                    this.innerHTML = 'Add Subscriber';
+                    this.disabled = false;
+                    
+                    // In a real implementation, you would refresh the subscribers list here
+                }, 1500);
+            });
+        }
+    });
+</script>
+{% endblock %} 

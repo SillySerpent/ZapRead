@@ -169,3 +169,237 @@ class User:
         # Otherwise, check the daily upload count
         daily_count = User.get_daily_upload_count(user_id)
         return daily_count < 5  # Allow up to 5 uploads per day for regular users 
+
+
+class WebsiteContent:
+    """Website content model for managing editable website content."""
+    
+    @staticmethod
+    def get_content(section, key=None):
+        """
+        Get website content by section and optional key.
+        
+        Args:
+            section (str): The section name (e.g., 'hero', 'testimonials', 'features').
+            key (str, optional): Specific key within the section. Defaults to None.
+            
+        Returns:
+            dict or list: The content data.
+        """
+        supabase = get_supabase()
+        
+        if key:
+            # Get specific content by section and key
+            response = supabase.table('website_content').select('*').eq('section', section).eq('key', key).execute()
+        else:
+            # Get all content for a section
+            response = supabase.table('website_content').select('*').eq('section', section).execute()
+        
+        return response.data
+    
+    @staticmethod
+    def update_content(section, key, content_data):
+        """
+        Update website content.
+        
+        Args:
+            section (str): The section name.
+            key (str): The content key.
+            content_data (dict): The content data.
+            
+        Returns:
+            dict: The updated content.
+        """
+        supabase = get_supabase()
+        
+        # First check if content exists
+        response = supabase.table('website_content').select('id').eq('section', section).eq('key', key).execute()
+        
+        if response.data and len(response.data) > 0:
+            # Update existing content
+            content_id = response.data[0]['id']
+            update_data = {
+                'content': content_data,
+                'updated_at': datetime.datetime.now().isoformat()
+            }
+            update_response = supabase.table('website_content').update(update_data).eq('id', content_id).execute()
+            return update_response.data
+        else:
+            # Create new content
+            insert_data = {
+                'section': section,
+                'key': key,
+                'content': content_data,
+                'created_at': datetime.datetime.now().isoformat(),
+                'updated_at': datetime.datetime.now().isoformat()
+            }
+            insert_response = supabase.table('website_content').insert(insert_data).execute()
+            return insert_response.data
+    
+    @staticmethod
+    def delete_content(section, key):
+        """
+        Delete website content.
+        
+        Args:
+            section (str): The section name.
+            key (str): The content key.
+            
+        Returns:
+            bool: True if deleted, False otherwise.
+        """
+        supabase = get_supabase()
+        response = supabase.table('website_content').delete().eq('section', section).eq('key', key).execute()
+        
+        return len(response.data) > 0
+    
+    @staticmethod
+    def get_testimonials():
+        """
+        Get all testimonials.
+        
+        Returns:
+            list: List of testimonials.
+        """
+        return WebsiteContent.get_content('testimonials')
+    
+    @staticmethod
+    def update_testimonial(testimonial_id, data):
+        """
+        Update a testimonial.
+        
+        Args:
+            testimonial_id (str): The testimonial ID.
+            data (dict): The testimonial data.
+            
+        Returns:
+            dict: The updated testimonial.
+        """
+        return WebsiteContent.update_content('testimonials', testimonial_id, data)
+    
+    @staticmethod
+    def add_testimonial(data):
+        """
+        Add a new testimonial.
+        
+        Args:
+            data (dict): The testimonial data.
+            
+        Returns:
+            dict: The created testimonial.
+        """
+        # Generate a unique ID for the testimonial
+        testimonial_id = f"testimonial_{datetime.datetime.now().timestamp()}"
+        return WebsiteContent.update_content('testimonials', testimonial_id, data)
+    
+    @staticmethod
+    def delete_testimonial(testimonial_id):
+        """
+        Delete a testimonial.
+        
+        Args:
+            testimonial_id (str): The testimonial ID.
+            
+        Returns:
+            bool: True if deleted, False otherwise.
+        """
+        return WebsiteContent.delete_content('testimonials', testimonial_id)
+
+
+class Analytics:
+    """Analytics model for tracking and retrieving website analytics."""
+    
+    @staticmethod
+    def track_page_view(page, user_id=None, metadata=None):
+        """
+        Track a page view.
+        
+        Args:
+            page (str): The page path.
+            user_id (str, optional): The user ID if logged in. Defaults to None.
+            metadata (dict, optional): Additional metadata. Defaults to None.
+            
+        Returns:
+            dict: The created page view record.
+        """
+        supabase = get_supabase()
+        
+        data = {
+            'page': page,
+            'user_id': user_id,
+            'metadata': metadata or {},
+            'timestamp': datetime.datetime.now().isoformat()
+        }
+        
+        response = supabase.table('page_views').insert(data).execute()
+        return response.data
+    
+    @staticmethod
+    def get_page_views(days=30, page=None):
+        """
+        Get page views for the specified period.
+        
+        Args:
+            days (int, optional): The number of days to look back. Defaults to 30.
+            page (str, optional): Filter by specific page. Defaults to None.
+            
+        Returns:
+            list: Page view records.
+        """
+        supabase = get_supabase()
+        
+        # Calculate the date range
+        end_date = datetime.datetime.now()
+        start_date = end_date - datetime.timedelta(days=days)
+        
+        # Build the query
+        query = supabase.table('page_views').select('*').gte('timestamp', start_date.isoformat())
+        
+        if page:
+            query = query.eq('page', page)
+        
+        response = query.order('timestamp', desc=True).execute()
+        return response.data
+    
+    @staticmethod
+    def get_daily_stats(days=30):
+        """
+        Get daily statistics for the specified period.
+        
+        Args:
+            days (int, optional): The number of days to look back. Defaults to 30.
+            
+        Returns:
+            dict: Daily statistics.
+        """
+        # In a real implementation, this would query the database for aggregated statistics
+        # For now, we'll return dummy data
+        supabase = get_supabase()
+        
+        # This is a placeholder - in a real implementation, you would
+        # use SQL to aggregate the data by day
+        end_date = datetime.datetime.now()
+        start_date = end_date - datetime.timedelta(days=days)
+        
+        # Get all views in the date range
+        views = supabase.table('page_views').select('*')\
+            .gte('timestamp', start_date.isoformat())\
+            .lte('timestamp', end_date.isoformat())\
+            .execute().data
+        
+        # Manually aggregate by day (this is inefficient but serves as a demonstration)
+        daily_stats = {}
+        for view in views:
+            date = view['timestamp'].split('T')[0]  # Extract date part
+            if date not in daily_stats:
+                daily_stats[date] = {'count': 0, 'unique_users': set()}
+            
+            daily_stats[date]['count'] += 1
+            if view['user_id']:
+                daily_stats[date]['unique_users'].add(view['user_id'])
+        
+        # Convert sets to counts
+        for date in daily_stats:
+            daily_stats[date]['unique_users'] = len(daily_stats[date]['unique_users'])
+        
+        return daily_stats 

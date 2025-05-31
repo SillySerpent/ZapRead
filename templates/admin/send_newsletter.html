@@ -1,0 +1,704 @@
+{% extends "base.html" %}
+
+{% block title %}Send Newsletter - ZapRead Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-0">Send Newsletter</h1>
+            <p class="text-muted">Compose and send emails to your subscribers</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin_newsletter') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Subscribers
+            </a>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-nav">
+                <div class="d-flex">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-people admin-nav-icon"></i> Users
+                    </a>
+                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-pencil-square admin-nav-icon"></i> Content
+                    </a>
+                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
+                    </a>
+                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link active me-2">
+                        <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                        <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Main Content Editor -->
+        <div class="col-lg-8">
+            <div class="card-premium mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Compose Newsletter</h5>
+                </div>
+                <div class="card-body">
+                    <form id="newsletter-form" action="{{ url_for('admin_send_newsletter') }}" method="post">
+                        <!-- Subject Line -->
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">Subject Line <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="subject" name="subject" required>
+                            <div class="form-text">Keep it short and engaging. Avoid spam-triggering phrases.</div>
+                        </div>
+
+                        <!-- Sender Information -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="sender-name" class="form-label">Sender Name</label>
+                                <input type="text" class="form-control" id="sender-name" name="sender_name" value="ZapRead Team">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="reply-to" class="form-label">Reply-To Email</label>
+                                <input type="email" class="form-control" id="reply-to" name="reply_to" value="support@zapread.com">
+                            </div>
+                        </div>
+
+                        <!-- Preview Text -->
+                        <div class="mb-3">
+                            <label for="preview-text" class="form-label">Preview Text</label>
+                            <input type="text" class="form-control" id="preview-text" name="preview_text" maxlength="150">
+                            <div class="form-text">Text that appears in email clients preview. Aim for 50-150 characters.</div>
+                        </div>
+
+                        <!-- Email Content -->
+                        <div class="mb-3">
+                            <label for="content" class="form-label">Email Content <span class="text-danger">*</span></label>
+                            <textarea class="form-control rich-text-editor" id="content" name="content" rows="12" required></textarea>
+                        </div>
+
+                        <!-- Template Selection -->
+                        <div class="mb-3">
+                            <label class="form-label d-block">Email Template</label>
+                            <div class="btn-group" role="group">
+                                <input type="radio" class="btn-check" name="template" id="template-standard" value="standard" checked>
+                                <label class="btn btn-outline-secondary" for="template-standard">Standard</label>
+                                
+                                <input type="radio" class="btn-check" name="template" id="template-minimal" value="minimal">
+                                <label class="btn btn-outline-secondary" for="template-minimal">Minimal</label>
+                                
+                                <input type="radio" class="btn-check" name="template" id="template-promotional" value="promotional">
+                                <label class="btn btn-outline-secondary" for="template-promotional">Promotional</label>
+                            </div>
+                        </div>
+
+                        <!-- Footer Options -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-unsubscribe" name="include_unsubscribe" checked>
+                                <label class="form-check-label" for="include-unsubscribe">
+                                    Include unsubscribe link (required by law)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="include-company-info" name="include_company_info" checked>
+                                <label class="form-check-label" for="include-company-info">
+                                    Include company information and address
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-secondary" id="save-draft-btn">
+                                <i class="bi bi-save"></i> Save Draft
+                            </button>
+                            <button type="button" class="btn btn-primary" id="send-test-btn">
+                                <i class="bi bi-envelope"></i> Send Test
+                            </button>
+                            <button type="submit" class="btn btn-premium btn-premium-primary ms-auto" id="send-newsletter-btn">
+                                <i class="bi bi-send"></i> Send Newsletter
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Email Preview -->
+            <div class="card-premium">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Email Preview</h5>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary active" id="desktop-preview">
+                            <i class="bi bi-laptop"></i> Desktop
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="mobile-preview">
+                            <i class="bi bi-phone"></i> Mobile
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="email-preview-container" id="preview-container">
+                        <div class="email-preview-frame" id="preview-frame">
+                            <div class="email-preview-header">
+                                <div>
+                                    <div class="preview-from">ZapRead Team <span>&lt;no-reply@zapread.com&gt;</span></div>
+                                    <div class="preview-subject" id="preview-subject">Welcome to our newsletter</div>
+                                    <div class="preview-preview" id="preview-preview-text">This will show your preview text</div>
+                                </div>
+                            </div>
+                            <div class="email-preview-body" id="preview-body">
+                                <p>Your email content will appear here as you type it in the editor above.</p>
+                                <p>This preview will update in real-time to give you an idea of how your newsletter will look.</p>
+                                <p>Try adding some content to see how it appears!</p>
+                            </div>
+                            <div class="email-preview-footer">
+                                <p class="small text-muted">ZapRead, Inc.</p>
+                                <p class="small text-muted">123 Read Street, San Francisco, CA 94103</p>
+                                <p class="small text-muted"><a href="#">Unsubscribe</a> | <a href="#">View in browser</a></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="col-lg-4">
+            <!-- Audience Selection -->
+            <div class="card-premium mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Audience</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Send To</label>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="audience" id="audience-all" value="all" checked>
+                            <label class="form-check-label" for="audience-all">
+                                All Subscribers
+                                <span class="badge bg-secondary ms-1">{{ subscribers|length }}</span>
+                            </label>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="audience" id="audience-segment" value="segment">
+                            <label class="form-check-label" for="audience-segment">
+                                Segment
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="audience" id="audience-test" value="test">
+                            <label class="form-check-label" for="audience-test">
+                                Test Group Only
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="segment-options" class="d-none mb-3">
+                        <label for="segment-select" class="form-label">Select Segment</label>
+                        <select class="form-select mb-2" id="segment-select">
+                            <option value="premium">Premium Users</option>
+                            <option value="recent">Recently Joined</option>
+                            <option value="engaged">Highly Engaged</option>
+                            <option value="inactive">Inactive Users</option>
+                        </select>
+                        <a href="#" class="btn btn-sm btn-outline-primary">Create New Segment</a>
+                    </div>
+
+                    <div id="test-options" class="d-none">
+                        <label for="test-emails" class="form-label">Test Email Addresses</label>
+                        <textarea class="form-control" id="test-emails" rows="3" placeholder="Enter email addresses, separated by commas"></textarea>
+                        <div class="form-text">Add up to 5 email addresses for testing.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scheduling -->
+            <div class="card-premium mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Scheduling</h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="schedule" id="schedule-now" value="now" checked>
+                        <label class="form-check-label" for="schedule-now">
+                            Send immediately
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="schedule" id="schedule-later" value="later">
+                        <label class="form-check-label" for="schedule-later">
+                            Schedule for later
+                        </label>
+                    </div>
+
+                    <div id="schedule-options" class="d-none">
+                        <div class="mb-3">
+                            <label for="schedule-date" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="schedule-date">
+                        </div>
+                        <div class="mb-3">
+                            <label for="schedule-time" class="form-label">Time</label>
+                            <input type="time" class="form-control" id="schedule-time">
+                        </div>
+                        <div class="form-text mb-3">All times are in your local timezone.</div>
+
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="optimize-timing">
+                            <label class="form-check-label" for="optimize-timing">
+                                Optimize send time for best open rates
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tips -->
+            <div class="card-premium">
+                <div class="card-header">
+                    <h5 class="mb-0">Tips for Better Newsletters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="tips-list">
+                        <div class="tip-item">
+                            <i class="bi bi-lightbulb tip-icon"></i>
+                            <div>
+                                <h6 class="tip-title">Craft Compelling Subject Lines</h6>
+                                <p class="tip-text">Keep subject lines under 50 characters. Use action verbs and create a sense of urgency.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="bi bi-image tip-icon"></i>
+                            <div>
+                                <h6 class="tip-title">Use Quality Images</h6>
+                                <p class="tip-text">Include relevant images but keep file sizes small. Always add alt text.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="bi bi-phone tip-icon"></i>
+                            <div>
+                                <h6 class="tip-title">Mobile-Friendly Design</h6>
+                                <p class="tip-text">Most readers will view on mobile. Use a single column layout and large buttons.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="bi bi-clock tip-icon"></i>
+                            <div>
+                                <h6 class="tip-title">Optimal Send Times</h6>
+                                <p class="tip-text">Tuesday through Thursday mornings tend to have the highest open rates.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="modal fade" id="confirmSendModal" tabindex="-1" aria-labelledby="confirmSendModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmSendModalLabel">Confirm Newsletter Send</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>You're about to send this newsletter to <strong><span id="recipient-count">{{ subscribers|length }}</span> subscribers</strong>.</p>
+                    <p>Please confirm the following details:</p>
+                    <ul>
+                        <li><strong>Subject:</strong> <span id="confirm-subject">Loading...</span></li>
+                        <li><strong>From:</strong> <span id="confirm-from">ZapRead Team</span></li>
+                        <li><strong>Audience:</strong> <span id="confirm-audience">All Subscribers</span></li>
+                        <li><strong>Scheduled:</strong> <span id="confirm-schedule">Send immediately</span></li>
+                    </ul>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        This action cannot be undone once the newsletter is sent.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-premium btn-premium-primary" id="confirm-send-btn">Send Newsletter</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Email Modal -->
+    <div class="modal fade" id="testEmailModal" tabindex="-1" aria-labelledby="testEmailModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="testEmailModalLabel">Send Test Email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Send a test version of this newsletter to check how it will appear in email clients.</p>
+                    <div class="mb-3">
+                        <label for="test-email-address" class="form-label">Email Address</label>
+                        <input type="email" class="form-control" id="test-email-address" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="include-debug-info">
+                        <label class="form-check-label" for="include-debug-info">
+                            Include debug information in test email
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="send-test-email-btn">Send Test</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Rich text editor initialization
+        // This is a placeholder - in a real implementation, you would initialize a proper rich text editor
+        const contentEditor = document.getElementById('content');
+        if (contentEditor) {
+            // Initialize editor (e.g., TinyMCE, CKEditor, etc.)
+            console.log('Rich text editor would be initialized here');
+        }
+        
+        // Handle audience selection
+        const audienceAll = document.getElementById('audience-all');
+        const audienceSegment = document.getElementById('audience-segment');
+        const audienceTest = document.getElementById('audience-test');
+        const segmentOptions = document.getElementById('segment-options');
+        const testOptions = document.getElementById('test-options');
+        
+        if (audienceAll && audienceSegment && audienceTest) {
+            audienceAll.addEventListener('change', updateAudienceOptions);
+            audienceSegment.addEventListener('change', updateAudienceOptions);
+            audienceTest.addEventListener('change', updateAudienceOptions);
+        }
+        
+        function updateAudienceOptions() {
+            if (audienceSegment.checked) {
+                segmentOptions.classList.remove('d-none');
+                testOptions.classList.add('d-none');
+            } else if (audienceTest.checked) {
+                segmentOptions.classList.add('d-none');
+                testOptions.classList.remove('d-none');
+            } else {
+                segmentOptions.classList.add('d-none');
+                testOptions.classList.add('d-none');
+            }
+        }
+        
+        // Handle scheduling options
+        const scheduleNow = document.getElementById('schedule-now');
+        const scheduleLater = document.getElementById('schedule-later');
+        const scheduleOptions = document.getElementById('schedule-options');
+        
+        if (scheduleNow && scheduleLater) {
+            scheduleNow.addEventListener('change', updateScheduleOptions);
+            scheduleLater.addEventListener('change', updateScheduleOptions);
+        }
+        
+        function updateScheduleOptions() {
+            if (scheduleLater.checked) {
+                scheduleOptions.classList.remove('d-none');
+            } else {
+                scheduleOptions.classList.add('d-none');
+            }
+        }
+        
+        // Preview updates
+        const subjectInput = document.getElementById('subject');
+        const previewSubject = document.getElementById('preview-subject');
+        const previewTextInput = document.getElementById('preview-text');
+        const previewPreviewText = document.getElementById('preview-preview-text');
+        const previewBody = document.getElementById('preview-body');
+        
+        if (subjectInput && previewSubject) {
+            subjectInput.addEventListener('input', function() {
+                previewSubject.textContent = this.value || 'Your email subject';
+            });
+        }
+        
+        if (previewTextInput && previewPreviewText) {
+            previewTextInput.addEventListener('input', function() {
+                previewPreviewText.textContent = this.value || 'This will show your preview text';
+            });
+        }
+        
+        if (contentEditor && previewBody) {
+            contentEditor.addEventListener('input', function() {
+                previewBody.innerHTML = this.value || '<p>Your email content will appear here.</p>';
+            });
+        }
+        
+        // Preview device switcher
+        const desktopPreview = document.getElementById('desktop-preview');
+        const mobilePreview = document.getElementById('mobile-preview');
+        const previewContainer = document.getElementById('preview-container');
+        
+        if (desktopPreview && mobilePreview && previewContainer) {
+            desktopPreview.addEventListener('click', function() {
+                previewContainer.className = 'email-preview-container';
+                desktopPreview.classList.add('active');
+                mobilePreview.classList.remove('active');
+            });
+            
+            mobilePreview.addEventListener('click', function() {
+                previewContainer.className = 'email-preview-container mobile';
+                mobilePreview.classList.add('active');
+                desktopPreview.classList.remove('active');
+            });
+        }
+        
+        // Send test email button
+        const sendTestBtn = document.getElementById('send-test-btn');
+        const testEmailModal = new bootstrap.Modal(document.getElementById('testEmailModal'));
+        
+        if (sendTestBtn) {
+            sendTestBtn.addEventListener('click', function() {
+                testEmailModal.show();
+            });
+        }
+        
+        // Send test email confirmation
+        const sendTestEmailBtn = document.getElementById('send-test-email-btn');
+        
+        if (sendTestEmailBtn) {
+            sendTestEmailBtn.addEventListener('click', function() {
+                const testEmail = document.getElementById('test-email-address').value;
+                
+                if (!testEmail) {
+                    alert('Please enter a valid email address');
+                    return;
+                }
+                
+                // Show loading state
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+                this.disabled = true;
+                
+                // Simulate sending test email
+                setTimeout(() => {
+                    testEmailModal.hide();
+                    
+                    // Show success message
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'alert alert-success alert-dismissible fade show';
+                    successMessage.innerHTML = `
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Test email sent to ${testEmail}!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    
+                    document.querySelector('.container').prepend(successMessage);
+                    
+                    // Reset button
+                    this.innerHTML = 'Send Test';
+                    this.disabled = false;
+                }, 1500);
+            });
+        }
+        
+        // Newsletter form submission
+        const newsletterForm = document.getElementById('newsletter-form');
+        const sendNewsletterBtn = document.getElementById('send-newsletter-btn');
+        const confirmSendModal = new bootstrap.Modal(document.getElementById('confirmSendModal'));
+        
+        if (newsletterForm && sendNewsletterBtn) {
+            newsletterForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Update confirmation modal
+                document.getElementById('confirm-subject').textContent = subjectInput.value || 'No subject';
+                
+                let audienceText = 'All Subscribers';
+                if (audienceSegment && audienceSegment.checked) {
+                    const segmentSelect = document.getElementById('segment-select');
+                    audienceText = 'Segment: ' + segmentSelect.options[segmentSelect.selectedIndex].text;
+                } else if (audienceTest && audienceTest.checked) {
+                    audienceText = 'Test Group Only';
+                }
+                document.getElementById('confirm-audience').textContent = audienceText;
+                
+                let scheduleText = 'Send immediately';
+                if (scheduleLater && scheduleLater.checked) {
+                    const scheduleDate = document.getElementById('schedule-date').value;
+                    const scheduleTime = document.getElementById('schedule-time').value;
+                    scheduleText = `Scheduled for ${scheduleDate} at ${scheduleTime}`;
+                }
+                document.getElementById('confirm-schedule').textContent = scheduleText;
+                
+                // Show confirmation modal
+                confirmSendModal.show();
+            });
+        }
+        
+        // Confirm send button
+        const confirmSendBtn = document.getElementById('confirm-send-btn');
+        
+        if (confirmSendBtn) {
+            confirmSendBtn.addEventListener('click', function() {
+                // Show loading state
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+                this.disabled = true;
+                
+                // Simulate sending newsletter
+                setTimeout(() => {
+                    confirmSendModal.hide();
+                    
+                    // Show success message
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'alert alert-success alert-dismissible fade show';
+                    successMessage.innerHTML = `
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Newsletter sent successfully!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    
+                    document.querySelector('.container').prepend(successMessage);
+                    
+                    // Reset form and button
+                    newsletterForm.reset();
+                    this.innerHTML = 'Send Newsletter';
+                    this.disabled = false;
+                    
+                    // Update preview
+                    if (previewSubject) previewSubject.textContent = 'Welcome to our newsletter';
+                    if (previewPreviewText) previewPreviewText.textContent = 'This will show your preview text';
+                    if (previewBody) previewBody.innerHTML = '<p>Your email content will appear here as you type it in the editor above.</p><p>This preview will update in real-time to give you an idea of how your newsletter will look.</p><p>Try adding some content to see how it appears!</p>';
+                }, 2000);
+            });
+        }
+        
+        // Save draft button
+        const saveDraftBtn = document.getElementById('save-draft-btn');
+        
+        if (saveDraftBtn) {
+            saveDraftBtn.addEventListener('click', function() {
+                // Show loading state
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Saving...';
+                this.disabled = true;
+                
+                // Simulate saving draft
+                setTimeout(() => {
+                    // Show success message
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'alert alert-info alert-dismissible fade show';
+                    successMessage.innerHTML = `
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Draft saved successfully!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    
+                    document.querySelector('.container').prepend(successMessage);
+                    
+                    // Reset button
+                    this.innerHTML = '<i class="bi bi-save"></i> Save Draft';
+                    this.disabled = false;
+                }, 1000);
+            });
+        }
+    });
+</script>
+
+<style>
+    /* Email Preview Styles */
+    .email-preview-container {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        height: 500px;
+        overflow: auto;
+        background: #f8f9fa;
+    }
+    
+    .email-preview-container.mobile {
+        max-width: 375px;
+        margin: 0 auto;
+    }
+    
+    .email-preview-frame {
+        background: white;
+        margin: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    
+    .email-preview-header {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        background: #f9f9f9;
+    }
+    
+    .preview-from {
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+    
+    .preview-from span {
+        font-weight: normal;
+        color: #666;
+    }
+    
+    .preview-subject {
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+    
+    .preview-preview {
+        color: #777;
+        font-size: 0.9em;
+    }
+    
+    .email-preview-body {
+        padding: 20px;
+        min-height: 300px;
+    }
+    
+    .email-preview-footer {
+        padding: 15px;
+        border-top: 1px solid #eee;
+        background: #f9f9f9;
+        font-size: 0.85em;
+    }
+    
+    /* Tips Styles */
+    .tips-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .tip-item {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .tip-icon {
+        font-size: 1.5rem;
+        color: var(--bs-primary);
+    }
+    
+    .tip-title {
+        margin-bottom: 4px;
+        font-size: 0.95rem;
+    }
+    
+    .tip-text {
+        margin-bottom: 0;
+        font-size: 0.85rem;
+        color: #666;
+    }
+</style>
+{% endblock %} 

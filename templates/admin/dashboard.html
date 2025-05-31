@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - ZapRead{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-0">Admin Dashboard</h1>
+            <p class="text-muted">Manage your ZapRead platform</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('admin_send_newsletter') }}" class="btn btn-premium btn-premium-primary">
+                <i class="bi bi-envelope"></i> Send Newsletter
+            </a>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-nav">
+                <div class="d-flex">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link active me-2">
+                        <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-people admin-nav-icon"></i> Users
+                    </a>
+                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-pencil-square admin-nav-icon"></i> Content
+                    </a>
+                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
+                    </a>
+                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                        <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="admin-card mb-4">
+                <div class="admin-stat">{{ users_count }}</div>
+                <div class="admin-label">Total Users</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card mb-4">
+                <div class="admin-stat">{{ files_count }}</div>
+                <div class="admin-label">Documents Processed</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card mb-4">
+                <div class="admin-stat">{{ subscribers_count }}</div>
+                <div class="admin-label">Newsletter Subscribers</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="admin-card mb-4">
+                <div class="admin-stat">{{ feedback_count }}</div>
+                <div class="admin-label">Feedback Submissions</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row">
+        <!-- Recent Users -->
+        <div class="col-md-6">
+            <div class="card-premium mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Recent Users</h5>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-sm btn-premium btn-premium-outline">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_users %}
+                    <div class="table-responsive">
+                        <table class="table-premium">
+                            <thead>
+                                <tr>
+                                    <th>Email</th>
+                                    <th>Joined</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td>{{ user.email }}</td>
+                                    <td>{{ user.created_at|default('-', true) }}</td>
+                                    <td>
+                                        {% if user.subscription_status == 'active' %}
+                                        <span class="badge bg-success">Premium</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Free</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted my-4">No users found</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Files -->
+        <div class="col-md-6">
+            <div class="card-premium mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Documents Processed</h5>
+                </div>
+                <div class="card-body">
+                    {% if recent_files %}
+                    <div class="table-responsive">
+                        <table class="table-premium">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Type</th>
+                                    <th>Processed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in recent_files %}
+                                <tr>
+                                    <td>{{ file.original_filename }}</td>
+                                    <td>{{ file.file_type }}</td>
+                                    <td>{{ file.created_at|default('-', true) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-center text-muted my-4">No documents found</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Visualization -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card-premium mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">User Growth</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="userGrowthChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card-premium mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Document Types</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="documentTypesChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // User Growth Chart
+        const userGrowthCtx = document.getElementById('userGrowthChart').getContext('2d');
+        const userGrowthChart = new Chart(userGrowthCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                datasets: [{
+                    label: 'New Users',
+                    data: [12, 19, 25, 31, 42, 56, 68, 75, 87, 94, 120, {{ users_count }}],
+                    backgroundColor: 'rgba(58, 134, 255, 0.2)',
+                    borderColor: 'rgba(58, 134, 255, 1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    pointBackgroundColor: 'rgba(58, 134, 255, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Document Types Chart
+        const documentTypesCtx = document.getElementById('documentTypesChart').getContext('2d');
+        const documentTypesChart = new Chart(documentTypesCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['PDF', 'DOCX', 'TXT'],
+                datasets: [{
+                    data: [65, 25, 10],
+                    backgroundColor: [
+                        'rgba(58, 134, 255, 0.8)',
+                        'rgba(255, 0, 110, 0.8)',
+                        'rgba(29, 209, 161, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

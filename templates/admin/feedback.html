@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}User Feedback - ZapRead Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="mb-0">User Feedback</h1>
+            <p class="text-muted">View and respond to user feedback and bug reports</p>
+        </div>
+    </div>
+
+    <!-- Admin Navigation -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="admin-nav">
+                <div class="d-flex">
+                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-people admin-nav-icon"></i> Users
+                    </a>
+                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-pencil-square admin-nav-icon"></i> Content
+                    </a>
+                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link active me-2">
+                        <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
+                    </a>
+                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link me-2">
+                        <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
+                    </a>
+                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                        <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Filters -->
+    <div class="card-premium mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control" id="feedback-search" placeholder="Search in feedback">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="feedback-type-filter">
+                        <option value="all">All Types</option>
+                        <option value="suggestion">Suggestions</option>
+                        <option value="bug">Bug Reports</option>
+                        <option value="question">Questions</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" id="feedback-status-filter">
+                        <option value="all">All Status</option>
+                        <option value="new">New</option>
+                        <option value="in-progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" id="sort-feedback">
+                        <option value="newest">Newest</option>
+                        <option value="oldest">Oldest</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback List -->
+    <div class="row">
+        <div class="col-12">
+            {% if feedback %}
+            <div class="feedback-list">
+                {% for item in feedback %}
+                <div class="card-premium mb-3 feedback-item" data-type="{{ item.feedback_type }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                {% if item.feedback_type == 'bug' %}
+                                <span class="badge bg-danger me-2">Bug Report</span>
+                                {% elif item.feedback_type == 'suggestion' %}
+                                <span class="badge bg-primary me-2">Suggestion</span>
+                                {% elif item.feedback_type == 'question' %}
+                                <span class="badge bg-info me-2">Question</span>
+                                {% else %}
+                                <span class="badge bg-secondary me-2">Other</span>
+                                {% endif %}
+                                
+                                <span class="badge bg-light text-dark border">
+                                    {{ item.status|default('New', true) }}
+                                </span>
+                            </div>
+                            <div class="text-muted small">
+                                {{ item.created_at|default('No date', true) }}
+                            </div>
+                        </div>
+                        
+                        <p class="feedback-message mb-3">{{ item.message }}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="avatar me-2 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 12px;">
+                                    {{ item.email|default('?', true)|first|upper if item.email else '?' }}
+                                </div>
+                                <div>
+                                    <div class="small fw-bold">{{ item.email|default('Anonymous', true) }}</div>
+                                    {% if item.user_id %}
+                                    <div class="small text-muted">User ID: {{ item.user_id }}</div>
+                                    {% else %}
+                                    <div class="small text-muted">Guest User</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="btn-group">
+                                    {% if item.status != 'resolved' and item.status != 'closed' %}
+                                    <button type="button" class="btn btn-sm btn-outline-success" data-feedback-id="{{ item.id }}">
+                                        <i class="bi bi-check-circle me-1"></i> Mark Resolved
+                                    </button>
+                                    {% endif %}
+                                    
+                                    {% if item.email %}
+                                    <button type="button" class="btn btn-sm btn-outline-primary" data-feedback-id="{{ item.id }}">
+                                        <i class="bi bi-reply me-1"></i> Reply
+                                    </button>
+                                    {% endif %}
+                                    
+                                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-tag me-2"></i> Change Status</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="bi bi-person-badge me-2"></i> Assign</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i> Delete</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Pagination -->
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            {% else %}
+            <div class="card-premium">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-chat-dots display-4 text-muted"></i>
+                    <p class="mt-3 text-muted">No feedback submissions yet</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-labelledby="replyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="replyModalLabel">Reply to Feedback</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reply-form">
+                    <input type="hidden" id="feedback-id" name="feedback_id">
+                    <div class="mb-3">
+                        <label for="reply-to" class="form-label">Reply To</label>
+                        <input type="email" class="form-control" id="reply-to" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reply-subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="reply-subject" value="Re: Your Feedback on ZapRead">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reply-message" class="form-label">Message</label>
+                        <textarea class="form-control" id="reply-message" rows="5" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="send-reply">Send Reply</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Feedback search and filtering
+        const feedbackSearch = document.getElementById('feedback-search');
+        const typeFilter = document.getElementById('feedback-type-filter');
+        const statusFilter = document.getElementById('feedback-status-filter');
+        const sortFeedback = document.getElementById('sort-feedback');
+        const feedbackItems = document.querySelectorAll('.feedback-item');
+        
+        if (feedbackSearch) {
+            feedbackSearch.addEventListener('input', filterFeedback);
+        }
+        
+        if (typeFilter) {
+            typeFilter.addEventListener('change', filterFeedback);
+        }
+        
+        if (statusFilter) {
+            statusFilter.addEventListener('change', filterFeedback);
+        }
+        
+        if (sortFeedback) {
+            sortFeedback.addEventListener('change', sortFeedbackItems);
+        }
+        
+        function filterFeedback() {
+            const searchTerm = feedbackSearch.value.toLowerCase();
+            const type = typeFilter.value;
+            const status = statusFilter.value;
+            
+            feedbackItems.forEach(item => {
+                const message = item.querySelector('.feedback-message').textContent.toLowerCase();
+                const itemType = item.dataset.type;
+                const itemStatus = item.querySelector('.badge.bg-light').textContent.trim().toLowerCase();
+                
+                let showItem = message.includes(searchTerm);
+                
+                if (type !== 'all') {
+                    showItem = showItem && itemType === type;
+                }
+                
+                if (status !== 'all') {
+                    showItem = showItem && itemStatus === status;
+                }
+                
+                item.style.display = showItem ? '' : 'none';
+            });
+        }
+        
+        function sortFeedbackItems() {
+            // This would be better implemented server-side,
+            // but for demonstration we'll just show the UI
+        }
+        
+        // Reply to feedback
+        const replyButtons = document.querySelectorAll('.btn-outline-primary');
+        const replyModal = new bootstrap.Modal(document.getElementById('replyModal'));
+        const replyForm = document.getElementById('reply-form');
+        const sendReplyBtn = document.getElementById('send-reply');
+        
+        replyButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const feedbackId = this.dataset.feedbackId;
+                const emailEl = this.closest('.feedback-item').querySelector('.fw-bold');
+                const email = emailEl.textContent.trim();
+                
+                document.getElementById('feedback-id').value = feedbackId;
+                document.getElementById('reply-to').value = email;
+                
+                replyModal.show();
+            });
+        });
+        
+        if (sendReplyBtn) {
+            sendReplyBtn.addEventListener('click', function() {
+                // Simulate sending the reply
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    replyModal.hide();
+                    
+                    // Show success message
+                    const successMessage = document.createElement('div');
+                    successMessage.className = 'alert alert-success alert-dismissible fade show';
+                    successMessage.innerHTML = `
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Reply sent successfully!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    
+                    document.querySelector('.container').prepend(successMessage);
+                    
+                    // Reset the form and button
+                    replyForm.reset();
+                    this.innerHTML = 'Send Reply';
+                    this.disabled = false;
+                }, 1500);
+            });
+        }
+    });
+</script>
+{% endblock %} 
