@@ -14,7 +14,7 @@ from io import BytesIO
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 
-from .utils import process_text_bionic, detect_file_type, create_temp_output_path, debug_print
+from .utils import process_text_bionic, detect_file_type, create_output_path, debug_print
 from .pdf_utils import (
     process_pdf_span, 
     draw_image_on_canvas, 
@@ -36,7 +36,7 @@ def create_bionic_pdf_direct(input_path):
         doc = fitz.open(input_path)
         
         # Create output path
-        temp_dir, output_path = create_temp_output_path(input_path, 'pdf', '_bionic')
+        output_path = create_output_path(input_path, 'pdf', '_bionic')
         debug_print(f"Processing PDF: {input_path} -> {output_path}")
         
         # Counter for tracking processed spans
@@ -105,7 +105,7 @@ def create_bionic_pdf_reportlab(input_path):
         doc = fitz.open(input_path)
         
         # Create output path
-        temp_dir, output_path = create_temp_output_path(input_path, 'pdf', '_bionic_rl')
+        output_path = create_output_path(input_path, 'pdf', '_bionic_rl')
         debug_print(f"Processing PDF with ReportLab: {input_path} -> {output_path}")
         
         # Create a new PDF with ReportLab

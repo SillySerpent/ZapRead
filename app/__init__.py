@@ -29,7 +29,14 @@ def create_app(config_class=Config):
     static_dir = os.path.join(root_dir, 'static')
     
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+
+    # Load configuration values
     app.config.from_object(config_class)
+
+    # Give the Config class a chance to perform any runtime initialization (e.g.,
+    # converting relative paths to absolute ones).
+    if hasattr(config_class, 'init_app') and callable(getattr(config_class, 'init_app')):
+        config_class.init_app(app)
 
     # Register blueprints
     app.register_blueprint(auth_bp)

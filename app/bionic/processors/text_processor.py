@@ -1,6 +1,6 @@
 import os
 import re
-from .utils import process_text_html, create_html_template, create_temp_output_path, debug_print
+from .utils import process_text_html, create_html_template, create_output_path, debug_print
 
 def create_bionic_text_file(input_path):
     """
@@ -18,7 +18,7 @@ def create_bionic_text_file(input_path):
             content = f.read()
         
         # Create output path
-        temp_dir, output_path = create_temp_output_path(input_path, 'txt')
+        output_path = create_output_path(input_path, 'txt')
         
         # Process content for HTML output
         html_content = _process_content_for_html(content)

@@ -19,7 +19,7 @@ def process_file(input_path):
     Returns:
         dict: Processing result with success status and output path.
     """
-    return BionicProcessorFactory.process_file(input_path)
+    return BionicProcessorFactory().process_file(input_path)
 
 def get_supported_file_types():
     """

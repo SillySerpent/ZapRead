@@ -1,7 +1,7 @@
 import os
 import re
 from docx import Document
-from .utils import process_text_bionic, create_temp_output_path, debug_print
+from .utils import process_text_bionic, create_output_path, debug_print
 
 def create_bionic_docx_file(input_path):
     """
@@ -18,7 +18,7 @@ def create_bionic_docx_file(input_path):
         doc = Document(input_path)
         
         # Create output path
-        temp_dir, output_path = create_temp_output_path(input_path, 'docx')
+        output_path = create_output_path(input_path, 'docx')
         
         # Process each paragraph
         for paragraph in doc.paragraphs:

@@ -332,4 +332,4 @@ def create_bionic_reading_file(input_path):
     Returns:
         dict: Processing result with success status and output path.
     """
-    return BionicProcessorFactory.process_file(input_path) 
+    return BionicProcessorFactory().process_file(input_path) 

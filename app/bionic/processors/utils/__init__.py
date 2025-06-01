@@ -87,10 +87,10 @@ def detect_file_type(file_path):
         else:
             return 'unknown'
 
-def create_temp_output_path(input_path, file_type, suffix="_bionic"):
-    """Create a temporary output path for processed files."""
+def create_output_path(input_path, file_type, suffix="_bionic"):
+    """Create an output path for processed files in the same directory as the input file."""
     base_name = os.path.splitext(os.path.basename(input_path))[0]
-    temp_dir = tempfile.mkdtemp()
+    input_dir = os.path.dirname(input_path)
     
     if file_type == 'txt':
         extension = 'html'
@@ -98,9 +98,9 @@ def create_temp_output_path(input_path, file_type, suffix="_bionic"):
         extension = file_type
         
     output_filename = f"{base_name}{suffix}.{extension}"
-    output_path = os.path.join(temp_dir, output_filename)
+    output_path = os.path.join(input_dir, output_filename)
     
-    return temp_dir, output_path
+    return output_path
 
 def process_text_html(text):
     """Process text for HTML bionic reading format."""
@@ -210,7 +210,7 @@ __all__ = [
     'debug_print',
     'process_text_bionic',
     'detect_file_type',
-    'create_temp_output_path',
+    'create_output_path',
     'process_text_html',
     'create_html_template'
 ] 

@@ -213,9 +213,16 @@ def download_file(filename):
     matching_files = glob.glob(temp_pattern)
     
     if not matching_files:
-        # Also check uploads directory for fallback
+        # Also check the configured UPLOAD_FOLDER (now absolute) for fallback
         from flask import current_app
-        uploads_pattern = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), '**', filename)
+
+        uploads_root = current_app.config.get('UPLOAD_FOLDER', 'uploads')
+        # Ensure we are working with an absolute path – Config.init_app already guarantees this,
+        # but we enforce it defensively in case of mis-configuration.
+        if not os.path.isabs(uploads_root):
+            uploads_root = os.path.abspath(uploads_root)
+
+        uploads_pattern = os.path.join(uploads_root, '**', filename)
         matching_files = glob.glob(uploads_pattern, recursive=True)
     
     if matching_files:

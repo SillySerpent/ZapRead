@@ -79,9 +79,11 @@ class AdvancedPDFProcessor:
             self.stats['processing_method'] = processing_method.value
             
             # Create output path
+            # Ensure output is in the same directory as the input
+            output_dir_for_processed_file = Path(input_path).parent
             output_path = create_output_path(
                 input_path, 
-                output_dir=getattr(config, 'output_directory', None),
+                output_dir=str(output_dir_for_processed_file),
                 suffix='_bionic',
                 extension='pdf'
             )
@@ -266,25 +268,24 @@ class AdvancedPDFProcessor:
             # Create new text insertion with morphing
             bbox = fitz.Rect(span["bbox"])
             
-            # Remove original text by covering with background color
-            page.add_redact_annot(bbox)
+            # Remove original text by covering with white background so the old text is hidden
+            page.add_redact_annot(bbox, fill=(1, 1, 1))
             page.apply_redactions()
             
-            # Insert formatted text with morphing
             font_size = span["size"]
-            font_flags = span["flags"]
-            color = span["color"]
-            
-            # Calculate morphing parameters for bold effect
-            morph = fitz.Matrix(1.0, 0, 0, 1.0, 0, 0)  # Identity matrix as base
-            
+            color_tuple = self._int_to_rgb(span["color"])
+            font_name = self._get_font_name(span)
+
+            # Calculate text baseline (PyMuPDF uses bottom-left). Approximate baseline
+            baseline_point = fitz.Point(bbox.x0, bbox.y0 + font_size)
+
             # Insert the bionic formatted text
             page.insert_text(
-                bbox.tl,
+                baseline_point,
                 formatted_text,
                 fontsize=font_size,
-                color=color,
-                morph=morph
+                fontname=font_name,
+                color=color_tuple,
             )
             
             self.stats['bionic_spans_created'] += 1
@@ -401,7 +402,7 @@ class AdvancedPDFProcessor:
                     'point': bbox.tl,
                     'text': formatted_text,
                     'fontsize': span["size"],
-                    'color': span["color"],
+                    'color': self._int_to_rgb(span["color"]),
                     'fontname': self._get_font_name(span)
                 })
                 
@@ -537,4 +538,28 @@ class AdvancedPDFProcessor:
     
     def get_processing_stats(self) -> Dict[str, Any]:
         """Get processing statistics."""
-        return self.stats.copy() 
+        return self.stats.copy()
+
+    ###############################
+    # Utility helpers
+    ###############################
+
+    def _int_to_rgb(self, color_int: Any) -> Tuple[float, float, float]:
+        """Convert PyMuPDF span color (int or tuple) to an (r, g, b) tuple of 0-1 floats."""
+        # If it's already a tuple or list with 3 numbers, normalise to 0-1 and return
+        if isinstance(color_int, (tuple, list)) and len(color_int) >= 3:
+            r, g, b = color_int[:3]
+            # Assume values 0-1 or 0-255. If any value >1 we scale down.
+            if max(r, g, b) > 1:
+                return (r / 255.0, g / 255.0, b / 255.0)
+            return (float(r), float(g), float(b))
+
+        # If int, treat as 24-bit 0xRRGGBB value (most common for PyMuPDF)
+        if isinstance(color_int, int):
+            r = (color_int >> 16) & 0xFF
+            g = (color_int >> 8) & 0xFF
+            b = color_int & 0xFF
+            return (r / 255.0, g / 255.0, b / 255.0)
+
+        # Fallback – black
+        return (0.0, 0.0, 0.0) 

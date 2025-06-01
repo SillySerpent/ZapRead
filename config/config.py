@@ -47,8 +47,23 @@ class Config:
     @staticmethod
     def init_app(app):
         """Initialize application with configuration."""
-        # Ensure upload folder exists
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        # Ensure UPLOAD_FOLDER is an absolute path. If it is a relative path, make it
+        # relative to the project root (the parent directory of the Flask package).
+        upload_folder = app.config.get('UPLOAD_FOLDER', 'uploads')
+
+        # Convert to absolute path if necessary
+        if not os.path.isabs(upload_folder):
+            # The application root (app.root_path) points to the `app/` package directory.
+            # We want uploads to reside alongside the package, i.e. project root.
+            from pathlib import Path
+            project_root = Path(app.root_path).parent
+            upload_folder = str(project_root / upload_folder)
+
+        # Update the configuration so the rest of the app always sees an absolute path
+        app.config['UPLOAD_FOLDER'] = upload_folder
+
+        # Finally, make sure the directory actually exists
+        os.makedirs(upload_folder, exist_ok=True)
 
 class DevelopmentConfig(Config):
     """Development configuration."""
