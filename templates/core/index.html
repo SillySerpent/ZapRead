@@ -1,0 +1,454 @@
+{% extends "shared/base.html" %}
+
+{% block title %}ZapRead - Transform Your Reading Experience{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 fade-in">
+                <h1>Read Faster, Comprehend Better</h1>
+                <p class="lead">ZapRead transforms your reading experience with advanced Bionic Reading technology, helping you process text faster and more efficiently.</p>
+                <div class="mt-4 d-flex flex-wrap">
+                    {% if session.get('user') %}
+                    <a href="{{ url_for('core.upload_file') }}" class="btn btn-premium btn-premium-primary me-3 mb-2">
+                        <i class="bi bi-cloud-upload"></i> Upload Document
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('core.guest_upload') }}" class="btn btn-premium btn-premium-primary me-3 mb-2">
+                        <i class="bi bi-lightning"></i> Try it Free
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-premium btn-premium-outline mb-2">
+                        <i class="bi bi-person-plus"></i> Sign Up
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="mt-4 d-flex align-items-center">
+                    <div class="d-flex">
+                        <img src="https://randomuser.me/api/portraits/men/32.jpg" class="rounded-circle" width="30" height="30" alt="User">
+                        <img src="https://randomuser.me/api/portraits/women/44.jpg" class="rounded-circle ms-n2" width="30" height="30" alt="User">
+                        <img src="https://randomuser.me/api/portraits/men/67.jpg" class="rounded-circle ms-n2" width="30" height="30" alt="User">
+                    </div>
+                    <p class="mb-0 ms-2 text-muted small">Trusted by 1000+ happy readers</p>
+                </div>
+            </div>
+            <div class="col-lg-6 mt-5 mt-lg-0 slide-in-right">
+                <div class="card-premium position-relative">
+                    <div class="card-body">
+                        <h5 class="mb-3">See the Difference:</h5>
+                        
+                        <div class="mb-4">
+                            <h6 class="text-muted">Normal Text:</h6>
+                            <p>Bionic Reading is a new method facilitating the reading process by guiding the eyes through text with artificial fixation points. As a result, the reader is only focusing on the highlighted initial letters and lets the brain center complete the word.</p>
+                        </div>
+                        
+                        <div>
+                            <h6 class="text-muted">With Bionic Reading:</h6>
+                            <p><strong>Bi</strong>onic <strong>Re</strong>ading <strong>is</strong> a <strong>ne</strong>w <strong>me</strong>thod <strong>fa</strong>cilitating <strong>th</strong>e <strong>re</strong>ading <strong>pro</strong>cess <strong>by</strong> <strong>gu</strong>iding <strong>th</strong>e <strong>ey</strong>es <strong>thr</strong>ough <strong>te</strong>xt <strong>wi</strong>th <strong>ar</strong>tificial <strong>fi</strong>xation <strong>po</strong>ints. <strong>As</strong> a <strong>re</strong>sult, <strong>th</strong>e <strong>re</strong>ader <strong>is</strong> <strong>on</strong>ly <strong>fo</strong>cusing <strong>on</strong> <strong>th</strong>e <strong>hi</strong>ghlighted <strong>in</strong>itial <strong>le</strong>tters <strong>an</strong>d <strong>le</strong>ts <strong>th</strong>e <strong>br</strong>ain <strong>ce</strong>nter <strong>co</strong>mplete <strong>th</strong>e <strong>wo</strong>rd.</p>
+                        </div>
+                        
+                        <div class="float-pattern position-absolute top-0 end-0 me-4 mt-4 text-primary opacity-25">
+                            <i class="bi bi-lightning-charge-fill fs-1"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 mt-4">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>Features that Transform Your Reading</h2>
+            <p class="lead text-muted">Unlock the full potential of your reading experience</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4 slide-up stagger-item">
+                <div class="feature-card text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="bi bi-speedometer2"></i>
+                    </div>
+                    <h3>Fast Processing</h3>
+                    <p>Upload your documents and get them processed instantly with our efficient algorithm.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 slide-up stagger-item">
+                <div class="feature-card text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <h3>Multiple Formats</h3>
+                    <p>Support for text files, PDFs, and Word documents with automatic format detection.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 slide-up stagger-item">
+                <div class="feature-card text-center">
+                    <div class="feature-icon mx-auto">
+                        <i class="bi bi-star"></i>
+                    </div>
+                    <h3>Premium Value</h3>
+                    <p>Affordable subscription plans that let you process unlimited documents and enhance your reading.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>How It Works</h2>
+            <p class="lead text-muted">Simple steps to transform your reading experience</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4 fade-in stagger-item">
+                <div class="card-premium h-100">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 mb-4 mx-auto" style="width: 80px; height: 80px;">
+                            <h2 class="text-primary mb-0">1</h2>
+                        </div>
+                        <h3>Upload</h3>
+                        <p>Upload your document (TXT, PDF, DOCX) through our simple interface.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 fade-in stagger-item">
+                <div class="card-premium h-100">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 mb-4 mx-auto" style="width: 80px; height: 80px;">
+                            <h2 class="text-primary mb-0">2</h2>
+                        </div>
+                        <h3>Process</h3>
+                        <p>Our algorithm applies Bionic Reading formatting to your document.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 fade-in stagger-item">
+                <div class="card-premium h-100">
+                    <div class="card-body text-center">
+                        <div class="rounded-circle bg-primary bg-opacity-10 p-3 mb-4 mx-auto" style="width: 80px; height: 80px;">
+                            <h2 class="text-primary mb-0">3</h2>
+                        </div>
+                        <h3>Enjoy</h3>
+                        <p>Download and enjoy your enhanced reading experience immediately.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Scientific Background Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 slide-in-left">
+                <h2>Backed by Science</h2>
+                <p class="lead">Bionic Reading is based on established reading psychology research.</p>
+                <p>Research shows that readers typically don't read every letter of a word. Instead, our brains recognize words by their shape and key features. Bionic Reading leverages this by creating artificial fixation points, guiding the eye through text more efficiently.</p>
+                <p>Studies have shown this technique can:</p>
+                <ul class="mt-3">
+                    <li>Increase reading speed by up to 25%</li>
+                    <li>Improve comprehension and retention</li>
+                    <li>Reduce eye strain during extended reading sessions</li>
+                    <li>Help readers with dyslexia and ADHD focus better</li>
+                </ul>
+            </div>
+            <div class="col-lg-6 mt-4 mt-lg-0 slide-in-right">
+                <div class="card-premium">
+                    <div class="card-body">
+                        <img src="https://images.unsplash.com/photo-1532094349884-543bc11b234d?ixlib=rb-1.2.1&auto=format&fit=crop&w=1000&q=80" class="img-fluid rounded" alt="Scientific reading research">
+                        <p class="mt-3 text-center font-italic text-muted">"Bionic Reading stimulates the brain's visual processing centers, creating a more efficient reading pathway." — Reading Research Journal</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="testimonial-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>What Our Users Say</h2>
+            <p class="lead text-muted">Success stories from people who transformed their reading experience</p>
+        </div>
+        
+        <div class="row g-4">
+            {% if testimonials %}
+                {% for testimonial in testimonials %}
+                <div class="col-md-4 fade-in stagger-item">
+                    <div class="testimonial-card h-100">
+                        <div class="testimonial-text">
+                            "{{ testimonial.content.text }}"
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="{{ testimonial.content.author_image }}" alt="{{ testimonial.content.author_name }}" class="testimonial-author-image">
+                            <div>
+                                <div class="testimonial-author-name">{{ testimonial.content.author_name }}</div>
+                                <div class="testimonial-author-title">{{ testimonial.content.author_title }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Fallback testimonials if none are found in the database -->
+                <div class="col-md-4 fade-in stagger-item">
+                    <div class="testimonial-card h-100">
+                        <div class="testimonial-text">
+                            "ZapRead has completely transformed how I consume research papers. I can get through them 30% faster with better comprehension. It's a game-changer for academics."
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/women/32.jpg" alt="Sarah J." class="testimonial-author-image">
+                            <div>
+                                <div class="testimonial-author-name">Sarah Johnson</div>
+                                <div class="testimonial-author-title">PhD Student</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 fade-in stagger-item">
+                    <div class="testimonial-card h-100">
+                        <div class="testimonial-text">
+                            "As someone with ADHD, focusing on text has always been a struggle. ZapRead has made reading so much easier by guiding my eye through the text. I'm finally enjoying books again!"
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/men/54.jpg" alt="Michael T." class="testimonial-author-image">
+                            <div>
+                                <div class="testimonial-author-name">Michael Torres</div>
+                                <div class="testimonial-author-title">Software Engineer</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 fade-in stagger-item">
+                    <div class="testimonial-card h-100">
+                        <div class="testimonial-text">
+                            "I have to read hundreds of pages of legal documents weekly. Since using ZapRead, I've cut my review time by 20% while maintaining accuracy. Worth every penny!"
+                        </div>
+                        <div class="testimonial-author">
+                            <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="Jennifer M." class="testimonial-author-image">
+                            <div>
+                                <div class="testimonial-author-name">Jennifer Miller</div>
+                                <div class="testimonial-author-title">Corporate Lawyer</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+
+<!-- Newsletter Section -->
+<section class="py-4">
+    <div class="container">
+        <div class="newsletter-section">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2>Stay Updated</h2>
+                    <p>Subscribe to our newsletter to get the latest updates, tips, and features about ZapRead and bionic reading.</p>
+                    <form class="newsletter-form" action="{{ url_for('core.subscribe_newsletter') }}" method="post">
+                        <div class="input-group">
+                            <input type="email" name="email" class="newsletter-input" placeholder="Your email address" required>
+                            <button type="submit" class="newsletter-button">Subscribe</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Try It Free Section -->
+<section class="py-4">
+    <div class="container">
+        <div class="card-premium">
+            <div class="card-body p-4">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <h3 class="mb-2">Ready to Transform Your Reading Experience?</h3>
+                        <p class="mb-lg-0">Try ZapRead for free today. No registration required for your first document.</p>
+                    </div>
+                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                        <a href="{{ url_for('core.guest_upload') }}" class="btn btn-premium btn-premium-primary btn-lg">
+                            <i class="bi bi-lightning"></i> Try It Free
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5" id="faq">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2>Frequently Asked Questions</h2>
+            <p class="lead text-muted">Get answers to common questions about ZapRead</p>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="faq-item">
+                    <div class="faq-question">
+                        What is Bionic Reading?
+                        <i class="bi bi-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Bionic Reading is a reading method that helps you read faster and with better comprehension by guiding your eyes through text using artificial fixation points. It highlights the most important parts of words, allowing your brain to complete the word while reading less.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Which file formats are supported?
+                        <i class="bi bi-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>ZapRead currently supports PDF, TXT, and DOCX file formats. We automatically detect the format and process it accordingly to provide the best bionic reading experience.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How many documents can I convert for free?
+                        <i class="bi bi-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Without registration, you can convert one document. After registering for a free account, you can convert up to 5 documents per day. For unlimited conversions, you can subscribe to our Premium plan.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Is my data secure?
+                        <i class="bi bi-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes, your data security is our priority. Your documents are processed securely and deleted automatically after processing. We don't store the content of your documents, only basic metadata like filenames for your document history.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        Can I cancel my subscription anytime?
+                        <i class="bi bi-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes, you can cancel your subscription at any time. Your premium features will remain active until the end of your current billing period. We don't charge any cancellation fees.</p>
+                    </div>
+                </div>
+                
+                <div class="faq-item">
+                    <div class="faq-question">
+                        How does the premium subscription work?
+                        <i class="bi bi-plus"></i>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Our premium subscription costs $9.99 per month and gives you unlimited document conversions, priority processing, and premium support. You can sign up for a subscription after creating a free account.</p>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <p>Have more questions? <a href="#">Contact our support team</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Feedback Section -->
+<section class="py-4">
+    <div class="container">
+        <div class="card-premium">
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <h3>We Value Your Feedback</h3>
+                        <p>Help us improve ZapRead by sharing your experience or reporting any issues.</p>
+                        <form class="feedback-form" action="{{ url_for('core.submit_feedback') }}" method="post">
+                            <div class="mb-3">
+                                <label for="feedbackType" class="form-label">Feedback Type</label>
+                                <select class="form-select" name="feedback_type" id="feedbackType" required>
+                                    <option value="">Select type</option>
+                                    <option value="suggestion">Suggestion</option>
+                                    <option value="bug">Bug Report</option>
+                                    <option value="question">Question</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="feedbackMessage" class="form-label">Your Feedback</label>
+                                <textarea class="form-control" name="message" id="feedbackMessage" rows="4" required></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="feedbackEmail" class="form-label">Email (optional)</label>
+                                <input type="email" name="email" class="form-control" id="feedbackEmail" placeholder="For follow-up questions">
+                            </div>
+                            <button type="submit" class="btn btn-premium btn-premium-primary">
+                                <i class="bi bi-send"></i> Submit Feedback
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-lg-6 mt-4 mt-lg-0">
+                        <h3>Contact Us</h3>
+                        <p>Have questions or need assistance? Our team is here to help.</p>
+                        <div class="mb-4">
+                            <h5><i class="bi bi-envelope-fill me-2"></i> Email</h5>
+                            <p>support@zapread.com</p>
+                        </div>
+                        <div class="mb-4">
+                            <h5><i class="bi bi-clock-fill me-2"></i> Support Hours</h5>
+                            <p>Monday - Friday: 9am - 5pm EST</p>
+                        </div>
+                        <div>
+                            <h5><i class="bi bi-chat-dots-fill me-2"></i> Live Chat</h5>
+                            <p>Coming soon!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize FAQ items
+        const faqItems = document.querySelectorAll('.faq-item');
+        if (faqItems.length > 0) {
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question');
+                question.addEventListener('click', function() {
+                    item.classList.toggle('active');
+                    const icon = question.querySelector('i');
+                    if (item.classList.contains('active')) {
+                        icon.classList.remove('bi-plus');
+                        icon.classList.add('bi-dash');
+                    } else {
+                        icon.classList.remove('bi-dash');
+                        icon.classList.add('bi-plus');
+                    }
+                });
+            });
+        }
+    });
+</script>
+{% endblock %} 

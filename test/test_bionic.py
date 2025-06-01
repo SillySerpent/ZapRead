@@ -1,6 +1,6 @@
 import os
 import sys
-from bionic_processor import process_file_with_fallback
+from app.bionic.processors.main_processor import process_file_with_fallback
 
 def main():
     if len(sys.argv) < 2:

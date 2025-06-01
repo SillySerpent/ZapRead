@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "shared/base.html" %}
 
 {% block title %}Manage Testimonials - ZapRead Admin{% endblock %}
 
@@ -21,22 +21,22 @@
         <div class="col-12">
             <div class="admin-nav">
                 <div class="d-flex">
-                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="admin-nav-link me-2">
                         <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
                     </a>
-                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_users') }}" class="admin-nav-link me-2">
                         <i class="bi bi-people admin-nav-icon"></i> Users
                     </a>
-                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link active me-2">
+                    <a href="{{ url_for('admin.admin_content') }}" class="admin-nav-link active me-2">
                         <i class="bi bi-pencil-square admin-nav-icon"></i> Content
                     </a>
-                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_feedback') }}" class="admin-nav-link me-2">
                         <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
                     </a>
-                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_newsletter') }}" class="admin-nav-link me-2">
                         <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
                     </a>
-                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                    <a href="{{ url_for('admin.admin_analytics') }}" class="admin-nav-link">
                         <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
                     </a>
                 </div>
@@ -49,10 +49,10 @@
         <div class="col-12">
             <div class="admin-nav">
                 <div class="d-flex">
-                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_content') }}" class="admin-nav-link me-2">
                         <i class="bi bi-grid admin-nav-icon"></i> All Content
                     </a>
-                    <a href="{{ url_for('admin_testimonials') }}" class="admin-nav-link active me-2">
+                    <a href="{{ url_for('admin.admin_testimonials') }}" class="admin-nav-link active me-2">
                         <i class="bi bi-chat-quote admin-nav-icon"></i> Testimonials
                     </a>
                 </div>
@@ -139,7 +139,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="add-testimonial-form" action="{{ url_for('admin_add_testimonial') }}" method="post">
+                <form id="add-testimonial-form" action="{{ url_for('admin.admin_add_testimonial') }}" method="post">
                     <div class="mb-3">
                         <label for="text" class="form-label">Testimonial Text <span class="text-danger">*</span></label>
                         <textarea class="form-control" id="text" name="text" rows="4" required></textarea>
@@ -242,7 +242,7 @@
                 
                 // Set form action
                 const form = document.getElementById('edit-testimonial-form');
-                form.setAttribute('action', "{{ url_for('admin_edit_testimonial', testimonial_id='') }}" + testimonialId);
+                form.setAttribute('action', "{{ url_for('admin.admin_edit_testimonial', testimonial_id='') }}" + testimonialId);
                 
                 // Set form values
                 document.getElementById('edit-text').value = text;
@@ -261,7 +261,7 @@
                 
                 // Set form action
                 const form = document.getElementById('delete-testimonial-form');
-                form.setAttribute('action', "{{ url_for('admin_delete_testimonial', testimonial_id='') }}" + testimonialId);
+                form.setAttribute('action', "{{ url_for('admin.admin_delete_testimonial', testimonial_id='') }}" + testimonialId);
             });
         }
     });

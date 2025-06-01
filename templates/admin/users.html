@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "shared/base.html" %}
 
 {% block title %}Manage Users - ZapRead Admin{% endblock %}
 
@@ -16,22 +16,22 @@
         <div class="col-12">
             <div class="admin-nav">
                 <div class="d-flex">
-                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="admin-nav-link me-2">
                         <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
                     </a>
-                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link active me-2">
+                    <a href="{{ url_for('admin.admin_users') }}" class="admin-nav-link active me-2">
                         <i class="bi bi-people admin-nav-icon"></i> Users
                     </a>
-                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_content') }}" class="admin-nav-link me-2">
                         <i class="bi bi-pencil-square admin-nav-icon"></i> Content
                     </a>
-                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_feedback') }}" class="admin-nav-link me-2">
                         <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
                     </a>
-                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_newsletter') }}" class="admin-nav-link me-2">
                         <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
                     </a>
-                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                    <a href="{{ url_for('admin.admin_analytics') }}" class="admin-nav-link">
                         <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
                     </a>
                 </div>
@@ -67,19 +67,31 @@
         </div>
     </div>
 
-    <!-- Users Table -->
+    <!-- User List -->
     <div class="card-premium">
-        <div class="card-body">
-            {% if users %}
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Users ({{ users|length }})</h5>
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown">
+                    <i class="bi bi-download"></i> Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-spreadsheet me-2"></i> Export as CSV</a></li>
+                    <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-pdf me-2"></i> Export as PDF</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            {% if users and users|length > 0 %}
             <div class="table-responsive">
-                <table class="table-premium" id="users-table">
-                    <thead>
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
                         <tr>
+                            <th>User</th>
                             <th>Email</th>
                             <th>Joined</th>
                             <th>Subscription</th>
-                            <th>Documents</th>
-                            <th>Last Login</th>
+                            <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -88,38 +100,54 @@
                         <tr>
                             <td>
                                 <div class="d-flex align-items-center">
-                                    <div class="avatar me-2 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px; font-size: 14px;">
-                                        {{ user.email|default('?', true)|first|upper }}
+                                    <div class="avatar me-3 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;">
+                                        {{ (user.full_name or user.email)|first|upper }}
                                     </div>
-                                    {{ user.email }}
+                                    <div>
+                                        <div class="fw-bold">{{ user.full_name or 'No name' }}</div>
+                                        <div class="small text-muted">{{ user.id[:8] }}...</div>
+                                    </div>
                                 </div>
                             </td>
-                            <td>{{ user.created_at|default('-', true) }}</td>
+                            <td>
+                                <div>{{ user.email }}</div>
+                                {% if user.is_admin %}
+                                <span class="badge bg-warning text-dark small">Admin</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div>{{ user.created_at[:10] if user.created_at else 'Unknown' }}</div>
+                                <div class="small text-muted">{{ user.created_at[11:16] if user.created_at else '' }}</div>
+                            </td>
                             <td>
                                 {% if user.subscription_status == 'active' %}
                                 <span class="badge bg-success">Premium</span>
+                                {% elif user.subscription_status == 'canceled' %}
+                                <span class="badge bg-warning">Canceled</span>
                                 {% else %}
                                 <span class="badge bg-secondary">Free</span>
                                 {% endif %}
                             </td>
-                            <td>{{ user.documents_count|default('0', true) }}</td>
-                            <td>{{ user.last_login|default('-', true) }}</td>
                             <td>
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ loop.index }}" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Actions
+                                <span class="badge bg-success">Active</span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-sm btn-outline-primary" title="View Details" onclick="viewUser('{{ user.id }}')">
+                                        <i class="bi bi-eye"></i>
                                     </button>
-                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton{{ loop.index }}">
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-eye me-2"></i> View Details</a></li>
-                                        <li><a class="dropdown-item" href="#"><i class="bi bi-pencil me-2"></i> Edit User</a></li>
-                                        {% if user.subscription_status == 'active' %}
-                                        <li><a class="dropdown-item text-warning" href="#"><i class="bi bi-pause-circle me-2"></i> Suspend Subscription</a></li>
-                                        {% else %}
-                                        <li><a class="dropdown-item text-success" href="#"><i class="bi bi-star me-2"></i> Assign Premium</a></li>
-                                        {% endif %}
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li><a class="dropdown-item text-danger" href="#"><i class="bi bi-trash me-2"></i> Delete User</a></li>
-                                    </ul>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary edit-user-btn" title="Edit" 
+                                           data-user-id="{{ user.id }}" 
+                                           data-full-name="{{ user.full_name or '' }}" 
+                                           data-email="{{ user.email }}" 
+                                           data-subscription-status="{{ user.subscription_status }}" 
+                                           data-is-admin="{{ user.is_admin }}" 
+                                           data-newsletter-opt-in="{{ user.newsletter_opt_in }}">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Delete" onclick="deleteUser('{{ user.id }}', '{{ user.email }}')">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -127,27 +155,108 @@
                     </tbody>
                 </table>
             </div>
-
-            <!-- Pagination -->
-            <nav class="mt-4">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">Previous</a>
-                    </li>
-                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Next</a>
-                    </li>
-                </ul>
-            </nav>
             {% else %}
             <div class="text-center py-5">
                 <i class="bi bi-people display-4 text-muted"></i>
-                <p class="mt-3 text-muted">No users found</p>
+                <h5 class="mt-3 text-muted">No Users Found</h5>
+                <p class="text-muted">No users are currently registered in the system.</p>
             </div>
             {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- View User Modal -->
+<div class="modal fade" id="viewUserModal" tabindex="-1" aria-labelledby="viewUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewUserModalLabel">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="userDetailsContent">
+                    <div class="text-center py-4">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editUserForm" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="editFullName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="editFullName" name="full_name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="editEmail" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSubscriptionStatus" class="form-label">Subscription Status</label>
+                        <select class="form-select" id="editSubscriptionStatus" name="subscription_status">
+                            <option value="none">Free</option>
+                            <option value="active">Active Premium</option>
+                            <option value="canceled">Canceled</option>
+                        </select>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="editIsAdmin" name="is_admin">
+                        <label class="form-check-label" for="editIsAdmin">
+                            Admin User
+                        </label>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="editNewsletterOptIn" name="newsletter_opt_in">
+                        <label class="form-check-label" for="editNewsletterOptIn">
+                            Newsletter Subscription
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserModalLabel">Delete User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Warning:</strong> This action cannot be undone.
+                </div>
+                <p>Are you sure you want to delete the user <strong id="deleteUserEmail"></strong>?</p>
+                <p class="text-muted small">This will permanently delete the user account and all associated data.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteUserForm" method="post" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">Delete User</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
@@ -160,7 +269,7 @@
         const userSearch = document.getElementById('user-search');
         const subscriptionFilter = document.getElementById('subscription-filter');
         const sortUsers = document.getElementById('sort-users');
-        const usersTable = document.getElementById('users-table');
+        const usersTable = document.querySelector('.table');
         
         if (userSearch && usersTable) {
             userSearch.addEventListener('input', filterUsers);
@@ -180,8 +289,8 @@
             const rows = usersTable.querySelectorAll('tbody tr');
             
             rows.forEach(row => {
-                const email = row.cells[0].textContent.toLowerCase();
-                const subscription = row.cells[2].textContent.toLowerCase();
+                const email = row.cells[1].textContent.toLowerCase();
+                const subscription = row.cells[3].textContent.toLowerCase();
                 
                 let showRow = email.includes(searchTerm);
                 
@@ -195,6 +304,131 @@
                 row.style.display = showRow ? '' : 'none';
             });
         }
+        
+        // Edit user button handlers
+        document.querySelectorAll('.edit-user-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const userId = this.dataset.userId;
+                const fullName = this.dataset.fullName;
+                const email = this.dataset.email;
+                const subscriptionStatus = this.dataset.subscriptionStatus;
+                const isAdmin = this.dataset.isAdmin === 'True';
+                const newsletterOptIn = this.dataset.newsletterOptIn === 'True';
+                
+                editUser(userId, fullName, email, subscriptionStatus, isAdmin, newsletterOptIn);
+            });
+        });
     });
+    
+    // View user function
+    function viewUser(userId) {
+        const modal = new bootstrap.Modal(document.getElementById('viewUserModal'));
+        const content = document.getElementById('userDetailsContent');
+        
+        // Show loading state
+        content.innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+        
+        modal.show();
+        
+        // Fetch user details
+        fetch(`/admin/user/${userId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const user = data.user;
+                    const fileHistory = data.file_history || [];
+                    
+                    content.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>User Information</h6>
+                                <table class="table table-sm">
+                                    <tr><td><strong>ID:</strong></td><td>${user.id}</td></tr>
+                                    <tr><td><strong>Email:</strong></td><td>${user.email}</td></tr>
+                                    <tr><td><strong>Full Name:</strong></td><td>${user.full_name || 'Not provided'}</td></tr>
+                                    <tr><td><strong>Created:</strong></td><td>${new Date(user.created_at).toLocaleDateString()}</td></tr>
+                                    <tr><td><strong>Subscription:</strong></td><td>
+                                        <span class="badge ${user.subscription_status === 'active' ? 'bg-success' : 'bg-secondary'}">
+                                            ${user.subscription_status === 'active' ? 'Premium' : 'Free'}
+                                        </span>
+                                    </td></tr>
+                                    <tr><td><strong>Admin:</strong></td><td>${user.is_admin ? 'Yes' : 'No'}</td></tr>
+                                    <tr><td><strong>Newsletter:</strong></td><td>${user.newsletter_opt_in ? 'Subscribed' : 'Not subscribed'}</td></tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Recent File History</h6>
+                                ${fileHistory.length > 0 ? `
+                                    <div class="list-group">
+                                        ${fileHistory.slice(0, 5).map(file => `
+                                            <div class="list-group-item">
+                                                <div class="d-flex w-100 justify-content-between">
+                                                    <h6 class="mb-1">${file.original_filename}</h6>
+                                                    <small>${new Date(file.created_at).toLocaleDateString()}</small>
+                                                </div>
+                                                <p class="mb-1">${file.file_type}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : '<p class="text-muted">No files processed yet.</p>'}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            Error loading user details: ${data.error}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                content.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        Error loading user details. Please try again.
+                    </div>
+                `;
+            });
+    }
+    
+    // Edit user function
+    function editUser(userId, fullName, email, subscriptionStatus, isAdmin, newsletterOptIn) {
+        const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+        const form = document.getElementById('editUserForm');
+        
+        // Set form action
+        form.action = `/admin/user/${userId}/edit`;
+        
+        // Populate form fields
+        document.getElementById('editFullName').value = fullName;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editSubscriptionStatus').value = subscriptionStatus;
+        document.getElementById('editIsAdmin').checked = isAdmin;
+        document.getElementById('editNewsletterOptIn').checked = newsletterOptIn;
+        
+        modal.show();
+    }
+    
+    // Delete user function
+    function deleteUser(userId, email) {
+        const modal = new bootstrap.Modal(document.getElementById('deleteUserModal'));
+        const form = document.getElementById('deleteUserForm');
+        
+        // Set form action
+        form.action = `/admin/user/${userId}/delete`;
+        
+        // Set email in confirmation message
+        document.getElementById('deleteUserEmail').textContent = email;
+        
+        modal.show();
+    }
 </script>
 {% endblock %} 

@@ -1,0 +1,16 @@
+{% extends "shared/base.html" %}
+
+{% block title %}Email Verified - ZapRead{% endblock %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            <h2 class="mt-3">Email Verified!</h2>
+            <p class="lead">Your email has been successfully verified. You can now log in to your account.</p>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-lg">Log In Now</a>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "shared/base.html" %}
 
 {% block title %}Newsletter Management - ZapRead Admin{% endblock %}
 
@@ -10,7 +10,7 @@
             <p class="text-muted">Manage subscribers and send newsletters</p>
         </div>
         <div class="col-md-4 text-end">
-            <a href="{{ url_for('admin_send_newsletter') }}" class="btn btn-premium btn-premium-primary">
+            <a href="{{ url_for('admin.admin_send_newsletter') }}" class="btn btn-premium btn-premium-primary">
                 <i class="bi bi-envelope"></i> Send Newsletter
             </a>
         </div>
@@ -21,22 +21,22 @@
         <div class="col-12">
             <div class="admin-nav">
                 <div class="d-flex">
-                    <a href="{{ url_for('admin_dashboard') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_dashboard') }}" class="admin-nav-link me-2">
                         <i class="bi bi-speedometer2 admin-nav-icon"></i> Dashboard
                     </a>
-                    <a href="{{ url_for('admin_users') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_users') }}" class="admin-nav-link me-2">
                         <i class="bi bi-people admin-nav-icon"></i> Users
                     </a>
-                    <a href="{{ url_for('admin_content') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_content') }}" class="admin-nav-link me-2">
                         <i class="bi bi-pencil-square admin-nav-icon"></i> Content
                     </a>
-                    <a href="{{ url_for('admin_feedback') }}" class="admin-nav-link me-2">
+                    <a href="{{ url_for('admin.admin_feedback') }}" class="admin-nav-link me-2">
                         <i class="bi bi-chat-dots admin-nav-icon"></i> Feedback
                     </a>
-                    <a href="{{ url_for('admin_newsletter') }}" class="admin-nav-link active me-2">
+                    <a href="{{ url_for('admin.admin_newsletter') }}" class="admin-nav-link active me-2">
                         <i class="bi bi-envelope admin-nav-icon"></i> Newsletter
                     </a>
-                    <a href="{{ url_for('admin_analytics') }}" class="admin-nav-link">
+                    <a href="{{ url_for('admin.admin_analytics') }}" class="admin-nav-link">
                         <i class="bi bi-graph-up admin-nav-icon"></i> Analytics
                     </a>
                 </div>
@@ -214,7 +214,7 @@
             <div class="text-center py-4">
                 <i class="bi bi-envelope-paper display-4 text-muted"></i>
                 <p class="mt-3 text-muted">No campaigns sent yet</p>
-                <a href="{{ url_for('admin_send_newsletter') }}" class="btn btn-premium btn-premium-primary mt-2">
+                <a href="{{ url_for('admin.admin_send_newsletter') }}" class="btn btn-premium btn-premium-primary mt-2">
                     <i class="bi bi-send"></i> Create Your First Campaign
                 </a>
             </div>

@@ -1,7 +1,7 @@
 import os
-from supabase import create_client, Client
+from supabase import create_client
+from config.config import get_config
 from flask import session, g
-from config import get_config
 
 config = get_config()
 

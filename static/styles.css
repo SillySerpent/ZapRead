@@ -63,6 +63,20 @@
     color: #0d6efd;
 }
 
+/* Fixed navbar spacing */
+body {
+    padding-top: 76px; /* Height of the navbar + some extra padding */
+}
+
+.container.content {
+    padding-top: 20px;
+}
+
+/* Adjust admin dashboard container */
+.admin-dashboard-container {
+    padding-top: 20px;
+}
+
 /* Animated subscription button */
 .subscribe-btn {
     position: relative;

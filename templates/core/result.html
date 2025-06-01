@@ -1,0 +1,242 @@
+{% extends "shared/base.html" %}
+
+{% block title %}Processing Complete - ZapRead{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            Processing Complete!
+                        </h3>
+                        <div class="btn-group">
+                            <a href="{{ download_url }}" class="btn btn-primary" download="{{ processed_filename }}">
+                                <i class="bi bi-download me-2"></i>Download
+                            </a>
+                            {% if session.get('user') %}
+                            <a href="{{ url_for('core.upload_file') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-plus-circle me-2"></i>Process Another
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('core.guest_upload') }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-plus-circle me-2"></i>Process Another
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>File Information</h5>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Original File:</strong></td>
+                                    <td>{{ original_filename }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>File Type:</strong></td>
+                                    <td>{{ file_type.upper() }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Processing Method:</strong></td>
+                                    <td>{{ processing_method|default('Standard', true) }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td><span class="badge bg-success">Complete</span></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-info">
+                                <h6><i class="bi bi-lightbulb me-2"></i>About Bionic Reading</h6>
+                                <p class="mb-0">Your document has been enhanced with Bionic Reading formatting, which highlights key parts of words to help you read faster and with better comprehension.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div class="row">
+                        <div class="col-12">
+                            <h5>Preview</h5>
+                            {% if file_type == 'pdf' %}
+                            <div class="pdf-preview-container">
+                                <div class="alert alert-primary mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Your PDF has been processed with Bionic Reading formatting while preserving all original structure, images, and layout.
+                                </div>
+                                <div class="pdf-embed-container">
+                                    <iframe 
+                                        src="{{ download_url }}#toolbar=1&navpanes=0&scrollbar=1" 
+                                        width="100%" 
+                                        height="600px" 
+                                        type="application/pdf"
+                                        style="border: 1px solid #dee2e6; border-radius: 0.375rem;">
+                                        <p>Your browser does not support PDF preview. 
+                                           <a href="{{ download_url }}" download="{{ processed_filename }}">Click here to download the file</a>.
+                                        </p>
+                                    </iframe>
+                                </div>
+                                <div class="mt-3 text-center">
+                                    <small class="text-muted">
+                                        <i class="bi bi-eye me-1"></i>Preview above | 
+                                        <i class="bi bi-download me-1"></i><a href="{{ download_url }}" download="{{ processed_filename }}">Download full file</a>
+                                    </small>
+                                </div>
+                            </div>
+                            {% elif file_type == 'txt' %}
+                            <div class="text-preview-container">
+                                <div class="alert alert-primary mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Your text has been converted to HTML format with Bionic Reading styling.
+                                </div>
+                                <div class="html-embed-container">
+                                    <iframe 
+                                        src="{{ download_url }}" 
+                                        width="100%" 
+                                        height="500px" 
+                                        style="border: 1px solid #dee2e6; border-radius: 0.375rem;">
+                                    </iframe>
+                                </div>
+                                <div class="mt-3 text-center">
+                                    <small class="text-muted">
+                                        <i class="bi bi-eye me-1"></i>Preview above | 
+                                        <i class="bi bi-download me-1"></i><a href="{{ download_url }}" download="{{ processed_filename }}">Download HTML file</a>
+                                    </small>
+                                </div>
+                            </div>
+                            {% elif file_type == 'docx' %}
+                            <div class="docx-preview-container">
+                                <div class="alert alert-primary mb-3">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Your DOCX document has been processed with Bionic Reading formatting while preserving all original formatting and structure.
+                                </div>
+                                <div class="download-prompt text-center py-4">
+                                    <i class="bi bi-file-earmark-word fs-1 text-primary mb-3"></i>
+                                    <h5>Download Required</h5>
+                                    <p class="text-muted mb-3">DOCX files need to be downloaded to view the Bionic Reading formatting in Microsoft Word or compatible applications.</p>
+                                    <a href="{{ download_url }}" class="btn btn-primary btn-lg" download="{{ processed_filename }}">
+                                        <i class="bi bi-download me-2"></i>Download DOCX File
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            {% if not session.get('user') %}
+                            <div class="alert alert-warning mb-0">
+                                <strong>Want more?</strong> 
+                                <a href="{{ url_for('auth.register') }}">Create an account</a> for 5 free conversions per day, or 
+                                <a href="{{ url_for('subscription.subscription') }}">get unlimited access</a> with a subscription.
+                            </div>
+                            {% else %}
+                            <small class="text-muted">
+                                <i class="bi bi-shield-check me-1"></i>
+                                Your files are processed securely and automatically deleted after 24 hours.
+                            </small>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="{{ url_for('core.index') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-house me-2"></i>Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.pdf-preview-container, .text-preview-container, .docx-preview-container {
+    background-color: #f8f9fa;
+    border-radius: 0.375rem;
+    padding: 1rem;
+}
+
+.pdf-embed-container, .html-embed-container {
+    background: white;
+    border-radius: 0.375rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.download-prompt {
+    background: white;
+    border-radius: 0.375rem;
+    border: 2px dashed #dee2e6;
+}
+
+iframe {
+    display: block;
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .pdf-embed-container iframe,
+    .html-embed-container iframe {
+        height: 400px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle iframe loading errors
+    const iframes = document.querySelectorAll('iframe');
+    iframes.forEach(iframe => {
+        iframe.addEventListener('error', function() {
+            this.style.display = 'none';
+            const container = this.closest('.pdf-embed-container, .html-embed-container');
+            if (container) {
+                container.innerHTML = `
+                    <div class="alert alert-warning text-center">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        Preview not available. Please download the file to view it.
+                        <div class="mt-2">
+                            <a href="${iframe.src}" class="btn btn-primary" download>
+                                <i class="bi bi-download me-2"></i>Download File
+                            </a>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+    });
+
+    // Add loading indicator for iframes
+    iframes.forEach(iframe => {
+        const container = iframe.closest('.pdf-embed-container, .html-embed-container');
+        if (container) {
+            const loading = document.createElement('div');
+            loading.className = 'text-center py-4';
+            loading.innerHTML = `
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2 text-muted">Loading preview...</p>
+            `;
+            container.appendChild(loading);
+            
+            iframe.addEventListener('load', function() {
+                loading.remove();
+            });
+        }
+    });
+});
+</script>
+{% endblock %} 

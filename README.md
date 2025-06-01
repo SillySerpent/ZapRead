@@ -92,10 +92,30 @@ ZapRead is a web application that enhances reading efficiency by applying bionic
 
 1. Start the Flask development server:
    ```
-   flask run
+   python run.py
    ```
 
-2. Open your browser and navigate to `http://127.0.0.1:5000/`.
+2. The application will automatically detect if port 5000 is in use and find an available alternative port.
+
+3. Open your browser and navigate to the URL shown in the terminal (typically `http://localhost:5000` or an alternative port).
+
+### Port Conflict Resolution
+
+**macOS Users**: If you encounter a "Port 5000 is in use" error, this is typically caused by the macOS AirPlay Receiver service. The application will automatically use an alternative port (like 5001). 
+
+To permanently resolve this:
+- Go to **System Preferences** > **Sharing**
+- Uncheck **AirPlay Receiver**
+
+Alternatively, you can specify a custom port:
+```
+python run.py --port 8080
+```
+
+### Additional Run Options
+
+- **Custom Port**: `python run.py --port 8080`
+- **Flask Development Mode**: The app runs in debug mode by default during development
 
 ## Running in Production
 

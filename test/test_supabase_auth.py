@@ -2,10 +2,14 @@
 """
 Test script for Supabase authentication
 """
+import unittest
 import os
+import sys
+import time
+from datetime import datetime
 from pprint import pprint
 from supabase import create_client, Client
-from config import get_config
+from config.config import get_config
 
 config = get_config()
 

@@ -289,41 +289,22 @@ function initializeNewsletterForm() {
     if (!newsletterForm) return;
     
     newsletterForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
         const emailInput = this.querySelector('input[type="email"]');
         const submitBtn = this.querySelector('button[type="submit"]');
         
         if (!emailInput.value.trim()) {
-            // Show error
+            // Show error and prevent submission
+            e.preventDefault();
             emailInput.classList.add('is-invalid');
             return;
         }
         
-        // Add loading state
+        // Add loading state but allow form to submit
         emailInput.disabled = true;
         submitBtn.disabled = true;
         submitBtn.classList.add('btn-loading');
         
-        // Simulate AJAX request (replace with actual AJAX)
-        setTimeout(() => {
-            // Reset form
-            newsletterForm.reset();
-            emailInput.disabled = false;
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('btn-loading');
-            
-            // Show success message
-            const successMessage = document.createElement('div');
-            successMessage.className = 'alert alert-success mt-3 fade-in';
-            successMessage.innerHTML = 'Thank you for subscribing to our newsletter!';
-            newsletterForm.parentNode.appendChild(successMessage);
-            
-            // Remove after 5 seconds
-            setTimeout(() => {
-                successMessage.remove();
-            }, 5000);
-        }, 1500);
+        // Form will submit normally to backend
     });
 }
 
@@ -335,44 +316,18 @@ function initializeFeedbackForm() {
     if (!feedbackForm) return;
     
     feedbackForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
         const submitBtn = this.querySelector('button[type="submit"]');
         
-        // Add loading state
+        // Add loading state but allow form to submit
         submitBtn.classList.add('btn-loading');
         submitBtn.disabled = true;
         
-        // Disable all inputs
+        // Disable all inputs to prevent multiple submissions
         feedbackForm.querySelectorAll('input, textarea').forEach(input => {
             input.disabled = true;
         });
         
-        // Simulate AJAX request (replace with actual AJAX)
-        setTimeout(() => {
-            // Reset form
-            feedbackForm.reset();
-            
-            // Enable inputs
-            feedbackForm.querySelectorAll('input, textarea').forEach(input => {
-                input.disabled = false;
-            });
-            
-            // Reset button
-            submitBtn.disabled = false;
-            submitBtn.classList.remove('btn-loading');
-            
-            // Show success message
-            const successMessage = document.createElement('div');
-            successMessage.className = 'alert alert-success mt-3 fade-in';
-            successMessage.innerHTML = 'Thank you for your feedback! We appreciate your input.';
-            feedbackForm.parentNode.appendChild(successMessage);
-            
-            // Remove after 5 seconds
-            setTimeout(() => {
-                successMessage.remove();
-            }, 5000);
-        }, 1500);
+        // Form will submit normally to backend
     });
 }
 
