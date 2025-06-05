@@ -44,18 +44,45 @@
                                 </tr>
                                 <tr>
                                     <td><strong>Processing Method:</strong></td>
-                                    <td>{{ processing_method|default('Standard', true) }}</td>
+                                    <td>{{ method_used|default('Standard', true)|title }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Processing Time:</strong></td>
+                                    <td>{{ "%.2f"|format(processing_time|default(0)) }}s</td>
                                 </tr>
                                 <tr>
                                     <td><strong>Status:</strong></td>
                                     <td><span class="badge bg-success">Complete</span></td>
                                 </tr>
+                                {% if processor_metadata %}
+                                <tr>
+                                    <td><strong>Processor Version:</strong></td>
+                                    <td>{{ processor_metadata.get('processor_version', 'N/A') }}</td>
+                                </tr>
+                                {% if processor_metadata.get('intensity_used') %}
+                                <tr>
+                                    <td><strong>Intensity Used:</strong></td>
+                                    <td>{{ "%.0f"|format(processor_metadata.intensity_used * 100) }}%</td>
+                                </tr>
+                                {% endif %}
+                                {% if processor_metadata.get('profile_used') %}
+                                <tr>
+                                    <td><strong>Reading Profile:</strong></td>
+                                    <td>{{ processor_metadata.profile_used|title }}</td>
+                                </tr>
+                                {% endif %}
+                                {% endif %}
                             </table>
                         </div>
                         <div class="col-md-6">
                             <div class="alert alert-info">
                                 <h6><i class="bi bi-lightbulb me-2"></i>About Bionic Reading</h6>
-                                <p class="mb-0">Your document has been enhanced with Bionic Reading formatting, which highlights key parts of words to help you read faster and with better comprehension.</p>
+                                <p class="mb-2">Your document has been enhanced with Bionic Reading formatting, which highlights key parts of words to help you read faster and with better comprehension.</p>
+                                {% if processor_metadata and processor_metadata.get('fallback_used') %}
+                                <div class="alert alert-warning alert-sm mb-0">
+                                    <small><i class="bi bi-exclamation-triangle me-1"></i>Fallback processing was used for optimal compatibility.</small>
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
                     </div>

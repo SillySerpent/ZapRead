@@ -2,7 +2,7 @@ import os
 import uuid
 from werkzeug.utils import secure_filename
 from flask import current_app, session
-from app.bionic.processor import process_file
+from app.bionic.core.processor import BionicProcessor
 from app.auth.models import User
 
 class FileService:
@@ -61,13 +61,15 @@ class FileService:
         if not file or not file.filename:
             return {
                 'success': False,
-                'error': 'No file provided'
+                'error': 'No file provided',
+                'file_type': 'unknown'
             }
         
         if not cls.allowed_file(file.filename):
             return {
                 'success': False,
-                'error': 'File type not allowed. Please upload a TXT, PDF, or DOCX file.'
+                'error': 'File type not allowed. Please upload a TXT, PDF, or DOCX file.',
+                'file_type': 'unknown'
             }
         
         try:
@@ -98,30 +100,55 @@ class FileService:
         except Exception as e:
             return {
                 'success': False,
-                'error': f'Error saving file: {str(e)}'
+                'error': f'Error saving file: {str(e)}',
+                'file_type': 'unknown'
             }
     
     @classmethod
-    def process_bionic_file(cls, file_path, original_filename):
+    def process_bionic_file(cls, file_path, original_filename, processing_options=None):
         """
         Process a file for bionic reading.
         
         Args:
             file_path: Path to the uploaded file
             original_filename: Original filename for display
+            processing_options: Dictionary with processing configuration
             
         Returns:
             dict: Processing result with success status and output path
         """
         try:
-            result = process_file(file_path)
+            # Initialize the bionic processor
+            processor = BionicProcessor()
+            
+            # Convert processing options to processor parameters
+            kwargs = {}
+            if processing_options:
+                # Map the UI options to processor parameters
+                if 'intensity' in processing_options:
+                    kwargs['bionic_intensity'] = processing_options['intensity']
+                if 'reading_profile' in processing_options:
+                    kwargs['reading_profile'] = processing_options['reading_profile']
+                if 'output_format' in processing_options:
+                    kwargs['output_format'] = processing_options['output_format']
+                if 'processing_strategy' in processing_options:
+                    kwargs['processing_strategy'] = processing_options['processing_strategy']
+                if 'preserve_formatting' in processing_options:
+                    kwargs['preserve_formatting'] = processing_options['preserve_formatting']
+                if 'skip_technical' in processing_options:
+                    kwargs['skip_technical'] = processing_options['skip_technical']
+            
+            result = processor.process_file(file_path, **kwargs)
             
             if result.get('success'):
                 return {
                     'success': True,
                     'output_path': result['output_path'],
                     'file_type': result['file_type'],
-                    'original_filename': original_filename
+                    'original_filename': original_filename,
+                    'method_used': result.get('method_used', 'standard'),
+                    'processing_time': result.get('processing_time', 0),
+                    'processor_metadata': result.get('processor_metadata', {})
                 }
             else:
                 return {
@@ -138,7 +165,7 @@ class FileService:
             }
     
     @classmethod
-    def handle_file_upload_and_process(cls, file, user_id=None, add_to_history=True):
+    def handle_file_upload_and_process(cls, file, user_id=None, add_to_history=True, processing_options=None):
         """
         Complete file upload and processing workflow.
         
@@ -146,6 +173,7 @@ class FileService:
             file: Flask uploaded file object
             user_id: Optional user ID
             add_to_history: Whether to add to user's file history
+            processing_options: Dictionary with processing configuration
             
         Returns:
             dict: Complete processing result
@@ -159,8 +187,8 @@ class FileService:
         original_filename = save_result['original_filename']
         
         try:
-            # Process the file for bionic reading
-            process_result = cls.process_bionic_file(file_path, original_filename)
+            # Process the file for bionic reading with options
+            process_result = cls.process_bionic_file(file_path, original_filename, processing_options)
             
             if process_result['success']:
                 # Add to user history if requested and user is logged in
@@ -190,7 +218,10 @@ class FileService:
                     'output_path': process_result['output_path'],
                     'file_type': process_result['file_type'],
                     'original_filename': original_filename,
-                    'processed_filename': os.path.basename(process_result['output_path'])
+                    'processed_filename': os.path.basename(process_result['output_path']),
+                    'method_used': process_result.get('method_used', 'standard'),
+                    'processing_time': process_result.get('processing_time', 0),
+                    'processor_metadata': process_result.get('processor_metadata', {})
                 }
             else:
                 return process_result
@@ -198,7 +229,8 @@ class FileService:
         except Exception as e:
             return {
                 'success': False,
-                'error': f'Processing failed: {str(e)}'
+                'error': f'Processing failed: {str(e)}',
+                'file_type': 'unknown'
             }
         finally:
             # Clean up the uploaded file

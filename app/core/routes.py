@@ -1,6 +1,6 @@
 import os
 import uuid
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session, send_file, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, session, send_file, jsonify, current_app
 from werkzeug.utils import secure_filename
 from app.auth.decorators import login_required, subscription_required
 from app.auth.models import User
@@ -132,8 +132,20 @@ def upload_file():
             return redirect(request.url)
         
         if file:
-            # Use FileService for complete workflow
-            result = FileService.handle_file_upload_and_process(file, user_id, add_to_history=True)
+            # Extract processing options from form
+            processing_options = {
+                'intensity': float(request.form.get('intensity', 40)) / 100.0,  # Convert percentage to decimal
+                'reading_profile': request.form.get('reading_profile', 'standard'),
+                'output_format': request.form.get('output_format', 'html'),
+                'processing_strategy': request.form.get('processing_strategy', 'balanced'),
+                'preserve_formatting': request.form.get('preserve_formatting') == 'on',
+                'skip_technical': request.form.get('skip_technical') == 'on'
+            }
+            
+            # Use FileService for complete workflow with processing options
+            result = FileService.handle_file_upload_and_process(
+                file, user_id, add_to_history=True, processing_options=processing_options
+            )
             
             if result['success']:
                 flash('File processed successfully!', 'success')
@@ -148,9 +160,8 @@ def upload_file():
 
 @core_bp.route('/guest-upload', methods=['GET', 'POST'])
 def guest_upload():
-    """File upload route for guest users."""
+    """Guest file upload route."""
     if request.method == 'POST':
-        # Check if file was uploaded
         if 'file' not in request.files:
             flash('No file selected', 'error')
             return redirect(request.url)
@@ -161,8 +172,19 @@ def guest_upload():
             return redirect(request.url)
         
         if file:
-            # Use FileService for complete workflow
-            result = FileService.handle_file_upload_and_process(file, user_id=None, add_to_history=False)
+            # Get processing options from form
+            processing_options = {
+                'bionic_intensity': float(request.form.get('bionic_intensity', 0.4)),
+                'output_format': request.form.get('output_format', 'html'),
+                'processing_strategy': request.form.get('processing_strategy', 'balanced'),
+                'preserve_formatting': request.form.get('preserve_formatting') == 'on',
+                'skip_technical': request.form.get('skip_technical') == 'on'
+            }
+            
+            # Use FileService for complete workflow with processing options
+            result = FileService.handle_file_upload_and_process(
+                file, user_id=None, add_to_history=False, processing_options=processing_options
+            )
             
             if result['success']:
                 flash('File processed successfully!', 'success')
@@ -194,9 +216,11 @@ def result():
     
     return render_template('core/result.html',
                          original_filename=result['original_filename'],
-                         file_type=result['file_type'],
+                         file_type=result.get('file_type', 'unknown'),
                          processed_filename=result.get('processed_filename', os.path.basename(result['output_path'])),
-                         processing_method=result.get('method', 'Standard'),
+                         method_used=result.get('method_used', 'Standard'),
+                         processing_time=result.get('processing_time', 0),
+                         processor_metadata=result.get('processor_metadata', {}),
                          download_url=download_url)
 
 @core_bp.route('/download/<filename>')
@@ -214,8 +238,6 @@ def download_file(filename):
     
     if not matching_files:
         # Also check the configured UPLOAD_FOLDER (now absolute) for fallback
-        from flask import current_app
-
         uploads_root = current_app.config.get('UPLOAD_FOLDER', 'uploads')
         # Ensure we are working with an absolute path – Config.init_app already guarantees this,
         # but we enforce it defensively in case of mis-configuration.

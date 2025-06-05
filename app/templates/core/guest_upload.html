@@ -41,6 +41,53 @@
                     <div id="file-error" class="mb-3" style="display: none;">
                         <div class="alert alert-danger" id="error-message"></div>
                     </div>
+
+                    <!-- Bionic Processing Settings -->
+                    <div id="processing-settings" class="mb-4" style="display: none;">
+                        <h5 class="mb-3">
+                            <i class="bi bi-gear-fill me-2"></i>Processing Settings
+                        </h5>
+                        
+                        <!-- Intensity Control -->
+                        <div class="mb-3">
+                            <label for="intensity" class="form-label">
+                                Bionic Intensity: <span id="intensity-value">40%</span>
+                            </label>
+                            <input type="range" class="form-range" id="intensity" name="intensity" 
+                                   min="20" max="80" value="40" step="5">
+                            <div class="row text-muted small">
+                                <div class="col text-start">Subtle</div>
+                                <div class="col text-center">Balanced</div>
+                                <div class="col text-end">Strong</div>
+                            </div>
+                        </div>
+
+                        <!-- Reading Profile -->
+                        <div class="mb-3">
+                            <label for="reading_profile" class="form-label">Reading Profile</label>
+                            <select class="form-select" id="reading_profile" name="reading_profile">
+                                <option value="standard">Standard - Balanced for general reading</option>
+                                <option value="speed_reading">Speed Reading - Maximum enhancement</option>
+                                <option value="accessibility">Accessibility - Optimized for reading difficulties</option>
+                                <option value="technical">Technical - Conservative for technical documents</option>
+                                <option value="preservation">Preservation - Minimal changes</option>
+                            </select>
+                        </div>
+
+                        <!-- Output Format (for text files) -->
+                        <div class="mb-3" id="output-format-section">
+                            <label for="output_format" class="form-label">Output Format</label>
+                            <select class="form-select" id="output_format" name="output_format">
+                                <option value="html">HTML - Enhanced web format with styling</option>
+                                <option value="plain_text">Plain Text - Simple text with formatting</option>
+                                <option value="markdown">Markdown - Markdown with bold emphasis</option>
+                            </select>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle me-1"></i>
+                                PDF and DOCX files maintain their original format with bionic enhancements.
+                            </div>
+                        </div>
+                    </div>
                     <div class="d-grid gap-2">
                         <button type="submit" class="btn btn-primary btn-lg" id="upload-btn" disabled>
                             Process Document
@@ -114,18 +161,26 @@
             clearFileSelection();
         });
         
-        // Clear file selection
-        function clearFileSelection() {
-            fileInput.value = '';
-            fileDetails.style.display = 'none';
-            fileError.style.display = 'none';
-            uploadBtn.disabled = true;
-        }
+        // Handle intensity slider
+        const intensitySlider = document.getElementById('intensity');
+        const intensityValue = document.getElementById('intensity-value');
         
-        // Validate file type
-        function isValidFileType(filename) {
-            const extension = filename.split('.').pop().toLowerCase();
-            return supportedTypes.includes(extension);
+        intensitySlider.addEventListener('input', function() {
+            intensityValue.textContent = this.value + '%';
+        });
+        
+        // Handle file type specific options
+        function updateOutputFormatVisibility(fileType) {
+            const outputFormatSection = document.getElementById('output-format-section');
+            const outputFormatSelect = document.getElementById('output_format');
+            
+            if (fileType === 'txt') {
+                outputFormatSection.style.display = 'block';
+            } else {
+                outputFormatSection.style.display = 'none';
+                // Set to default for non-text files
+                outputFormatSelect.value = 'html';
+            }
         }
         
         // Handle selected files
@@ -152,6 +207,15 @@
                 selectedFileName.textContent = file.name;
                 selectedFileSize.textContent = formatFileSize(file.size);
                 fileDetails.style.display = 'block';
+                
+                // Show processing settings
+                const processingSettings = document.getElementById('processing-settings');
+                processingSettings.style.display = 'block';
+                
+                // Update output format options based on file type
+                const fileExtension = file.name.split('.').pop().toLowerCase();
+                updateOutputFormatVisibility(fileExtension);
+                
                 uploadBtn.disabled = false;
             }
         }
@@ -171,6 +235,25 @@
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        // Validate file type
+        function isValidFileType(filename) {
+            const extension = filename.split('.').pop().toLowerCase();
+            return supportedTypes.includes(extension);
+        }
+        
+        // Clear file selection
+        function clearFileSelection() {
+            fileInput.value = '';
+            fileDetails.style.display = 'none';
+            fileError.style.display = 'none';
+            
+            // Hide processing settings
+            const processingSettings = document.getElementById('processing-settings');
+            processingSettings.style.display = 'none';
+            
+            uploadBtn.disabled = true;
         }
     });
 </script>

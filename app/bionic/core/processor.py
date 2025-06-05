@@ -20,7 +20,7 @@ from .exceptions import (
 )
 from ..processors.pdf_advanced import AdvancedPDFProcessor
 from ..processors.docx_processor import process_docx_file
-from ..processors.text_processor import process_text_file
+from ..processors.utils import apply_bionic_formatting_to_text
 from ..utils.file_utils import detect_file_type, validate_file
 
 
@@ -87,7 +87,16 @@ class BionicProcessor:
                 raise FileNotFoundError(input_path)
             
             file_info = validate_file(input_path, self.config)
-            file_type = file_info['file_type']
+            
+            # Check if validation was successful
+            if not file_info.get('is_valid', False):
+                validation_errors = file_info.get('validation_errors', ['Unknown validation error'])
+                raise BionicProcessingError(f"File validation failed: {'; '.join(validation_errors)}")
+            
+            file_type = file_info.get('file_type', 'unknown')
+            
+            if file_type == 'unknown':
+                raise UnsupportedFileTypeError('unknown', input_path)
             
             if file_type not in self.config.supported_types:
                 raise UnsupportedFileTypeError(file_type, input_path)
@@ -112,6 +121,14 @@ class BionicProcessor:
             result.update({
                 'processing_time': processing_time,
                 'processor_version': '2.0.0',
+                'method_used': result.get('method_used', 'standard'),
+                'processor_metadata': {
+                    'processor_version': '2.0.0',
+                    'intensity_used': processing_config.bionic_intensity,
+                    'reading_profile': kwargs.get('reading_profile', 'standard'),
+                    'processing_mode': processing_config.processing_mode.value,
+                    'fallback_used': False
+                },
                 'config_used': processing_config.to_dict() if hasattr(processing_config, 'to_dict') else str(processing_config)
             })
             
@@ -127,28 +144,79 @@ class BionicProcessor:
             self.logger.error(f"Processing failed for {input_path}: {error_msg}")
             self._update_stats(processing_time, False, error_msg)
             
+            # Try to get file_type from exception or file_info, fallback to 'unknown'
+            file_type = 'unknown'
+            if hasattr(e, 'file_type'):
+                file_type = e.file_type
+            elif 'file_info' in locals():
+                file_type = file_info.get('file_type', 'unknown')
+            
             return {
                 'success': False,
                 'error': error_msg,
-                'file_type': getattr(e, 'file_type', 'unknown'),
+                'file_type': file_type,
                 'processing_time': processing_time,
                 'file_path': input_path
             }
     
     def _create_processing_config(self, **kwargs) -> BionicConfig:
-        """Create a processing-specific configuration."""
+        """Create a processing-specific configuration with enhanced parameter mapping."""
         # Create a copy of the current config
         config_dict = self.config.to_dict()
         
-        # Override with provided kwargs
-        config_dict.update(kwargs)
+        # Map new parameters to existing config parameters with validation
+        if 'bionic_intensity' in kwargs:
+            intensity = kwargs['bionic_intensity']
+            # Ensure intensity is in valid range
+            intensity = max(0.0, min(1.0, float(intensity)))
+            config_dict['bionic_intensity'] = intensity
+            self.logger.debug(f"Applied bionic intensity: {intensity}")
         
-        return BionicConfig.from_dict(config_dict)
+        if 'reading_profile' in kwargs:
+            # Map reading profiles to processing modes for compatibility
+            profile_mapping = {
+                'speed': ProcessingMode.SPEED,
+                'speed_reading': ProcessingMode.SPEED,
+                'balanced': ProcessingMode.BALANCED,
+                'standard': ProcessingMode.BALANCED,
+                'quality': ProcessingMode.QUALITY,
+                'accessibility': ProcessingMode.BALANCED,
+                'technical': ProcessingMode.QUALITY,
+                'preservation': ProcessingMode.QUALITY
+            }
+            profile = kwargs['reading_profile']
+            if profile in profile_mapping:
+                config_dict['processing_mode'] = profile_mapping[profile]
+                self.logger.debug(f"Applied reading profile: {profile} -> {profile_mapping[profile].value}")
+        
+        # Create the config object
+        config = BionicConfig.from_dict(config_dict)
+        
+        # Attach additional processing options as attributes for easy access
+        if 'output_format' in kwargs:
+            config._output_format = kwargs['output_format']
+        if 'processing_strategy' in kwargs:
+            config._processing_strategy = kwargs['processing_strategy']
+        if 'preserve_formatting' in kwargs:
+            config._preserve_formatting = kwargs['preserve_formatting']
+        if 'skip_technical' in kwargs:
+            config._skip_technical = kwargs['skip_technical']
+        
+        # Log final configuration for debugging
+        self.logger.debug(f"Final processing config - Intensity: {config.bionic_intensity}, Mode: {config.processing_mode.value}")
+        
+        return config
     
     def _process_pdf(self, input_path: str, config: BionicConfig, file_info: Dict) -> Dict[str, Any]:
         """Process PDF file with advanced capabilities."""
         try:
-            return self.pdf_processor.process(input_path, config, file_info)
+            result = self.pdf_processor.process(input_path, config, file_info=file_info)
+            
+            # Add file_type to successful results (matches pattern from other processors)
+            if result.get('success'):
+                result['file_type'] = 'pdf'
+            
+            return result
         except Exception as e:
             raise PDFProcessingError(f"PDF processing failed: {str(e)}", file_path=input_path, original_error=e)
     
@@ -176,24 +244,74 @@ class BionicProcessor:
             raise BionicProcessingError(f"DOCX processing failed: {str(e)}", file_path=input_path, original_error=e)
     
     def _process_text(self, input_path: str, config: BionicConfig, file_info: Dict) -> Dict[str, Any]:
-        """Process text file."""
+        """Process text file using modernized bionic processing."""
         try:
-            # Use existing text processor
-            result = process_text_file(input_path)
+            # Read the text file
+            with open(input_path, 'r', encoding='utf-8') as f:
+                content = f.read()
             
-            if result['success']:
-                return {
-                    'success': True,
-                    'output_path': result['output_path'],
-                    'file_type': 'txt',
-                    'method_used': 'text_standard',
-                    'metadata': {
-                        'original_size': file_info.get('size_bytes', 0),
-                        'lines_processed': file_info.get('line_count', 0)
-                    }
+            # Get output format preference
+            output_format = getattr(config, '_output_format', 'html')
+            
+            # Apply bionic formatting using the modernized system
+            formatted_content = apply_bionic_formatting_to_text(
+                content, 
+                intensity=getattr(config, 'bionic_intensity', 0.4)
+            )
+            
+            # Create output path with appropriate extension
+            input_path_obj = Path(input_path)
+            
+            if output_format == 'html':
+                output_filename = f"{input_path_obj.stem}_bionic.html"
+                # Wrap plain text in basic HTML structure
+                formatted_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bionic Reading - {input_path_obj.name}</title>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; margin: 2rem; }}
+        .bionic {{ white-space: pre-wrap; }}
+    </style>
+</head>
+<body>
+    <div class="bionic">{formatted_content}</div>
+</body>
+</html>"""
+            elif output_format == 'markdown':
+                output_filename = f"{input_path_obj.stem}_bionic.md"
+                # Convert to markdown format (basic conversion)
+                lines = formatted_content.split('\n')
+                markdown_lines = []
+                for line in lines:
+                    if line.strip():
+                        markdown_lines.append(line)
+                    else:
+                        markdown_lines.append('')
+                formatted_content = '\n'.join(markdown_lines)
+            else:  # plain_text or fallback
+                output_filename = f"{input_path_obj.stem}_bionic.txt"
+            
+            output_path = input_path_obj.parent / output_filename
+            
+            # Save the formatted content
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(formatted_content)
+            
+            return {
+                'success': True,
+                'output_path': str(output_path),
+                'file_type': 'txt',
+                'method_used': f'text_modernized_{output_format}',
+                'metadata': {
+                    'original_size': file_info.get('size_bytes', 0),
+                    'lines_processed': len(content.splitlines()),
+                    'intensity_used': getattr(config, 'bionic_intensity', 0.4),
+                    'output_format': output_format
                 }
-            else:
-                raise BionicProcessingError(result.get('error', 'Unknown text processing error'))
+            }
                 
         except Exception as e:
             raise BionicProcessingError(f"Text processing failed: {str(e)}", file_path=input_path, original_error=e)

@@ -1,46 +1,86 @@
 """
-ZapRead Bionic Reading Processor
+Enhanced Bionic Reading System - Modernized Architecture
 
-A comprehensive bionic reading processor that supports multiple file formats
-with advanced PDF processing capabilities and robust text analysis.
+This package provides advanced bionic reading capabilities with intelligent
+document analysis, configurable intensity management, multi-format output,
+and robust error handling.
+
+Features:
+- Intelligent document structure analysis
+- Configurable bionic reading intensity
+- Multiple output formats (plain text, HTML, Markdown, JSON)
+- Advanced processing pipeline with fallbacks
+- Comprehensive configuration system
+- Performance optimization and error handling
 """
 
-from .core.processor import BionicProcessor
-from .core.exceptions import BionicProcessingError, UnsupportedFileTypeError
-from .processors.factory import BionicProcessorFactory
+from .processors.text_processor import BionicTextProcessor, process_text_bionic, process_text_html
+from .processors.pdf_advanced import AdvancedPDFProcessor
+from .processors.utils import (
+    apply_bionic_formatting_to_text,
+    process_text_with_bionic_reading,
+    DocumentAnalyzer,
+    IntensityManager,
+    OutputFormatterManager,
+    ProcessingPipeline
+)
+from .core.bionic_config import BionicConfiguration
 
-# Main interface functions (backwards compatibility)
-def process_file(input_path, **kwargs):
+# Version information
+__version__ = "2.0.0"
+__author__ = "ZapRead Team"
+
+# Main processor classes
+__all__ = [
+    # Main processors
+    'BionicTextProcessor',
+    'AdvancedPDFProcessor',
+    
+    # Configuration
+    'BionicConfiguration',
+    
+    # Processing components
+    'DocumentAnalyzer',
+    'IntensityManager', 
+    'OutputFormatterManager',
+    'ProcessingPipeline',
+    
+    # Utility functions
+    'apply_bionic_formatting_to_text',
+    'process_text_with_bionic_reading',
+    
+    # Legacy compatibility
+    'process_text_bionic',
+    'process_text_html',
+    
+    # Version info
+    '__version__'
+]
+
+# Default processor instance for quick access
+_default_processor = None
+
+def get_default_processor():
+    """Get the default bionic text processor instance."""
+    global _default_processor
+    if _default_processor is None:
+        _default_processor = BionicTextProcessor()
+    return _default_processor
+
+def process_text(text: str, **kwargs):
     """
-    Process a file for bionic reading.
+    Quick text processing using default processor.
     
     Args:
-        input_path (str): Path to the input file
+        text: Text to process
         **kwargs: Additional processing options
         
     Returns:
-        dict: Processing result with success status and output path
+        Processing result dictionary
     """
-    processor = BionicProcessor()
-    return processor.process_file(input_path, **kwargs)
+    return get_default_processor().process_text(text, **kwargs)
 
-def get_supported_file_types():
-    """Get list of supported file types."""
-    return BionicProcessor.get_supported_types()
-
-def is_file_supported(file_path):
-    """Check if a file type is supported."""
-    return BionicProcessor.is_supported_type(file_path)
-
-# Main exports
-__all__ = [
-    'BionicProcessor',
-    'BionicProcessorFactory', 
-    'BionicProcessingError',
-    'UnsupportedFileTypeError',
-    'process_file',
-    'get_supported_file_types',
-    'is_file_supported'
-]
-
-__version__ = '2.0.0' 
+def reset_default_processor():
+    """Reset the default processor instance."""
+    global _default_processor
+    _default_processor = None 

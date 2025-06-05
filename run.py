@@ -8,8 +8,12 @@ It creates the app instance using the application factory pattern.
 import os
 import sys
 import socket
+
+# Add the current directory to Python path for imports
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 from app import create_app
-from config.config import config
+from app.config.config import config
 
 def is_port_in_use(port):
     """Check if a port is already in use."""

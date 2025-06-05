@@ -7,7 +7,7 @@ It registers all blueprints and configures the application for production use.
 
 import os
 from flask import Flask
-from config.config import Config
+from app.config.config import Config
 from app.auth.routes import auth_bp
 from app.core.routes import core_bp
 from app.admin.routes import admin_bp
@@ -23,10 +23,10 @@ def create_app(config_class=Config):
     Returns:
         Flask app instance
     """
-    # Get the path to the root templates and static directories
-    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    template_dir = os.path.join(root_dir, 'templates')
-    static_dir = os.path.join(root_dir, 'static')
+    # Get the path to the app templates and static directories
+    app_dir = os.path.dirname(os.path.abspath(__file__))
+    template_dir = os.path.join(app_dir, 'templates')
+    static_dir = os.path.join(app_dir, 'static')
     
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
