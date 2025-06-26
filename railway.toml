@@ -1,0 +1,8 @@
+# Railway deployment config
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "gunicorn --bind 0.0.0.0:$PORT wsgi:app"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10 

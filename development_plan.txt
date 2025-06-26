@@ -1,0 +1,219 @@
+ZAPREAD DEVELOPMENT PLAN
+========================
+
+PROJECT OVERVIEW:
+- Document processing web application using bionic reading principles
+- Tech Stack: Flask, Supabase, Stripe, HTML/CSS/JS
+- Deployment: Railway ($5/month)
+- File Processing: PDF, DOCX, TXT with format preservation
+- Subscription Model: Freemium, Pro, Enterprise (monthly billing)
+
+FILE STRUCTURE:
+===============
+
+ZapRead/
+├── app/
+│   ├── __init__.py                 # Flask app factory
+│   ├── config.py                   # Configuration management
+│   ├── models/
+│   │   ├── __init__.py
+│   │   ├── user.py                 # User model
+│   │   ├── subscription.py         # Subscription model
+│   │   ├── document.py             # Document model
+│   │   └── newsletter.py           # Newsletter model
+│   ├── routes/
+│   │   ├── __init__.py
+│   │   ├── auth.py                 # Authentication routes
+│   │   ├── main.py                 # Main routes
+│   │   ├── api.py                  # API endpoints
+│   │   ├── payments.py             # Stripe integration
+│   │   └── admin.py                # Admin panel
+│   ├── processors/
+│   │   ├── __init__.py
+│   │   ├── base_processor.py       # Base processor class
+│   │   ├── pdf_processor.py        # PDF processing
+│   │   ├── docx_processor.py       # DOCX processing
+│   │   ├── txt_processor.py        # TXT processing
+│   │   └── bionic_utils.py         # Bolding algorithm utilities
+│   ├── services/
+│   │   ├── __init__.py
+│   │   ├── auth_service.py         # Authentication logic
+│   │   ├── payment_service.py      # Stripe service
+│   │   ├── storage_service.py      # File storage management
+│   │   ├── email_service.py        # Newsletter/email service
+│   │   └── job_service.py          # Background job management
+│   ├── utils/
+│   │   ├── __init__.py
+│   │   ├── validators.py           # Input validation
+│   │   ├── helpers.py              # Helper functions
+│   │   └── decorators.py           # Custom decorators
+│   └── templates/
+│       ├── base.html               # Base template
+│       ├── index.html              # Landing page
+│       ├── auth/
+│       │   ├── login.html
+│       │   ├── register.html
+│       │   └── profile.html
+│       ├── dashboard/
+│       │   ├── dashboard.html      # User dashboard
+│       │   ├── files.html          # File management
+│       │   └── settings.html       # User settings
+│       ├── processing/
+│       │   ├── upload.html         # File upload
+│       │   ├── progress.html       # Processing progress
+│       │   └── result.html         # Processing result
+│       └── admin/
+│           ├── admin.html          # Admin dashboard
+│           └── users.html          # User management
+├── static/
+│   ├── css/
+│   │   ├── main.css                # Main styles
+│   │   ├── dashboard.css           # Dashboard styles
+│   │   └── processing.css          # Processing page styles
+│   ├── js/
+│   │   ├── main.js                 # Main JavaScript
+│   │   ├── upload.js               # File upload logic
+│   │   ├── progress.js             # Progress tracking
+│   │   └── dashboard.js            # Dashboard functionality
+│   └── img/
+│       ├── logo.svg                # ZapRead logo
+│       └── icons/                  # UI icons
+├── migrations/                     # Database migrations
+├── tests/
+│   ├── __init__.py
+│   ├── test_processors.py          # Processor tests
+│   ├── test_auth.py                # Authentication tests
+│   ├── test_payments.py            # Payment tests
+│   └── test_api.py                 # API tests
+├── uploads/                        # Temporary file storage
+├── processed/                      # Processed file storage
+├── requirements.txt                # Python dependencies
+├── .env.example                    # Environment variables template
+├── .gitignore                      # Git ignore rules
+├── wsgi.py                         # WSGI entry point
+├── run.py                          # Development server
+├── Dockerfile                      # Docker configuration
+└── railway.toml                    # Railway deployment config
+
+TECHNICAL REQUIREMENTS:
+=======================
+
+FILE PROCESSING:
+- Free Users: 5MB max, real-time processing
+- Subscribers: 500MB max, background processing with progress tracking
+- Format Preservation: Must maintain exact document structure (images, equations, formatting)
+- Bolding Algorithm: Word-length based calculation (optimal reading efficiency)
+
+STORAGE STRATEGY:
+- Temporary: Anonymous users
+- Permanent: Account users, newsletter subscribers, Pro/Enterprise users
+- File management dashboard for permanent storage users
+
+SUBSCRIPTION TIERS:
+- Freemium: 5MB limit, basic features
+- Pro: Monthly billing, 500MB limit, advanced features
+- Enterprise: Monthly billing, 500MB limit, premium features + support
+
+DATABASE REQUIREMENTS:
+- Users & authentication (Supabase Auth)
+- Subscription management (Stripe integration)
+- Document metadata & storage tracking
+- Newsletter subscribers
+- Processing job status & progress
+- User preferences (bolding intensity, settings)
+
+IMPLEMENTATION CHECKLIST:
+=========================
+
+PHASE 1: PROJECT FOUNDATION
+✓ 1. Create main application directory structure
+□ 2. Set up Flask app factory pattern in app/__init__.py
+□ 3. Create configuration management in app/config.py
+□ 4. Set up requirements.txt with all dependencies
+□ 5. Create .gitignore for Python/Flask projects
+□ 6. Set up .env.example template
+□ 7. Create basic run.py for development server
+□ 8. Set up wsgi.py for production deployment
+
+PHASE 2: DATABASE & MODELS
+□ 9. Set up Supabase integration and connection
+□ 10. Create User model with authentication fields
+□ 11. Create Subscription model with Stripe integration
+□ 12. Create Document model for file tracking
+□ 13. Create Newsletter model for subscriber management
+□ 14. Set up database migrations folder
+□ 15. Configure SQLAlchemy/Supabase ORM
+
+PHASE 3: CORE SERVICES
+□ 16. Create authentication service with Supabase Auth
+□ 17. Create payment service with Stripe integration
+□ 18. Create file storage service for upload/download management
+□ 19. Create email service for newsletters
+□ 20. Create background job service with Celery setup
+□ 21. Set up Redis for job queue management
+
+PHASE 4: DOCUMENT PROCESSING
+□ 22. Create base processor class with common functionality
+□ 23. Implement PDF processor maintaining layout integrity
+□ 24. Implement DOCX processor preserving formatting
+□ 25. Implement TXT processor with structure preservation
+□ 26. Create bionic reading algorithm (word-length based bolding)
+□ 27. Add progress tracking for background processing
+□ 28. Implement file size validation and tier restrictions
+
+PHASE 5: WEB ROUTES & API
+□ 29. Create authentication routes (login/register/profile)
+□ 30. Create main routes (home, upload, dashboard)
+□ 31. Create API endpoints for processing jobs
+□ 32. Create payment routes with Stripe webhooks
+□ 33. Create admin routes for user management
+□ 34. Implement file management routes
+
+PHASE 6: FRONTEND TEMPLATES
+□ 35. Create base HTML template with navigation
+□ 36. Create landing page with feature showcase
+□ 37. Create authentication templates
+□ 38. Create user dashboard with file management
+□ 39. Create upload interface with drag-and-drop
+□ 40. Create progress tracking interface
+□ 41. Create admin panel templates
+
+PHASE 7: FRONTEND FUNCTIONALITY
+□ 42. Implement main.js with core functionality
+□ 43. Create upload.js with file validation and progress
+□ 44. Create progress.js with WebSocket/SSE integration
+□ 45. Create dashboard.js with file management
+□ 46. Style all pages with responsive CSS
+□ 47. Add loading states and error handling
+
+PHASE 8: TESTING & VALIDATION
+□ 48. Write unit tests for document processors
+□ 49. Write integration tests for authentication
+□ 50. Write tests for payment processing
+□ 51. Write API endpoint tests
+□ 52. Test file upload/processing workflows
+□ 53. Test subscription tier restrictions
+
+PHASE 9: DEPLOYMENT PREPARATION
+□ 54. Create Dockerfile for containerization
+□ 55. Set up railway.toml for Railway deployment
+□ 56. Configure production environment variables
+□ 57. Set up database migrations for production
+□ 58. Configure static file serving
+□ 59. Set up monitoring and logging
+
+PHASE 10: PRODUCTION DEPLOYMENT
+□ 60. Deploy to Railway staging environment
+□ 61. Test all functionality in staging
+□ 62. Configure domain and SSL certificates
+□ 63. Set up production Stripe webhooks
+□ 64. Deploy to production
+□ 65. Monitor initial user feedback and performance
+
+NOTES:
+======
+- Each checklist item is atomic and specific
+- No creative decisions required during implementation
+- Follow RIPER-5 protocol for mode transitions
+- Maintain file structure integrity throughout development
+- Test each phase thoroughly before proceeding to next phase 
