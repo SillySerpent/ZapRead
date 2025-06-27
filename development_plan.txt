@@ -115,7 +115,7 @@ SUBSCRIPTION TIERS:
 - Enterprise: Monthly billing, 500MB limit, premium features + support
 
 DATABASE REQUIREMENTS:
-- Users & authentication (Supabase Auth)
+- Users/Admin Users & authentication (Supabase Auth)
 - Subscription management (Stripe integration)
 - Document metadata & storage tracking
 - Newsletter subscribers
